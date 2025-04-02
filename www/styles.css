@@ -1,0 +1,488 @@
+:root {
+    --header-text-cyan: #55aaaa; /* Adjust - Medium cyan text */
+    --border-cyan: rgba(125, 163, 163, 0.5); /* Make border slightly transparent too */
+
+    /* --- Lighter Cyan Variables for Hover --- */
+    --border-cyan-hover: rgba(150, 190, 190, 0.8); /* Brighter, less transparent cyan border */
+    --header-text-cyan-hover: #99dddd; /* Lighter cyan text */
+    /* --- End Hover Variables --- */
+
+    /* Define semi-transparent background color variable */
+    --header-bg-transparent: rgba(34, 34, 34, 0.5); /* #222 with 85% opacity - slightly less transparent */
+    --input-bg-transparent: rgba(51, 51, 51, 0.2); /* #333 with 90% opacity for inputs/dropdowns */
+    --tiny-blur: blur(.5px);
+    --small-blur: blur(3px);
+    --medium-blur: blur(5px);
+    --large-blur: blur(10px);
+    /* New variables for ticker items */
+    --slctIpt-on-bg: rgba(0, 180, 255, 0.2); /* Semi-transparent blue for selected */
+    --slctIpt-off-bg: rgba(68, 68, 68, 0.7); /* Semi-transparent gray #444 for unselected */
+    --slctIpt-border: rgba(100, 100, 100, 0.5); /* Faint border for items */
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* Dark mode styling for form controls and selectize inputs */
+/* 555 border */
+.selectize-input, .form-control, .selectize-dropdown, .dropdown-menu { border-color: #555; }
+/* 222 bg*/
+body, .content-wrapper, .right-side { background-color: #222; }
+/* 333 bg*/
+.sidebar { background-color: #333; }
+
+/* white text */
+.main-header .logo,
+.main-header .navbar,
+.irs--shiny .irs-min,
+.irs--shiny .irs-max,
+.irs--shiny .irs-single,
+.irs--shiny .irs-grid-text,
+body, .main-header, .content-wrapper, .right-side, .selectize-input, .form-control, .selectize-dropdown, .dropdown-menu, .btn { color: #eee; }
+
+/* Hover/active styles */
+/* using transparent bg, but may use this for some other elements
+.selectize-input + .selectize-dropdown .option:hover,
+.selectize-input + .selectize-dropdown .active {
+  background-color: #444 !important; 
+  color: #fff !important;
+  border-color: #666;
+} */
+/* hover/active white text */
+.dropdown-menu > li > a:hover,
+.selectize-dropdown-content div:hover,
+.selectize-input .item,
+.selectize-input + .selectize-dropdown .option:hover,
+.selectize-input + .selectize-dropdown .active,
+.btn:hover, .btn:active, .btn:focus { color: #fff !important; }
+
+/*.selectize-dropdown-content div:hover { background-color: #444 !important; }*/
+
+.selectize-input:not(.no-arrow):after {
+  border-top-color: #eee !important; 
+  position: unset !important;
+  display: inline-block !important;
+}
+/* end dark mode */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* Style for the toggle button */
+.header-toggle {
+  position: fixed;
+  top: 0; /* Adjust vertical position */
+  left: 15px; /* Adjust horizontal position (or use 'right' or 'left: 50%; transform: translateX(-50%);' for center) */
+  z-index: 999; /* Above content but potentially below activated header/dropdown */
+ 
+  padding: 5px 10px;
+  border-radius: 4px;
+
+  cursor: pointer;
+
+  transition: background-color 0.2s ease;
+}
+/* end toggle button */
+
+/* Initial state: hidden */
+.main-header {
+  position: fixed;
+  transform: translateY(-100%); /* Move the header out of view */
+  transition: transform 0.3s ease-in-out;
+  z-index: 1000; /* Ensure it covers the chart */
+}
+
+/* When the header is active (visible) */
+.main-header.active {
+  transform: translateY(0);
+}
+
+.logo { 
+  float: none !important; 
+  display: inline !important; 
+  width: auto !important; 
+  line-height: normal !important; 
+}
+.navbar { 
+  margin: 0 !important; 
+  min-height: 30px !important; 
+  display: inline-block; 
+  vertical-align: top;
+}
+
+.navbar .form-group { margin: 0; }
+
+.navbar-nav > li > div { margin:0; width: auto !important; }
+.navbar-nav > li > div > label + div { display: inline-block; }
+
+.navbar-nav > li > a { padding: 5px 10px !important; font-size: 12px; }
+.dropdown { font-size: 12px; }
+.dropdown li > a { padding: 3px 20px; }
+
+section.content { padding: 0; }
+
+
+
+
+
+/* Settings Dropdown Columns */
+.dropdown-menu,
+.selectize-input + .selectize-dropdown {
+  position: fixed !important;
+  top: auto !important;
+  left: 0 !important;
+  /*right: 0 !important;*/
+  width: 100vw !important;
+}
+/*.settings-container {
+  Adjust width as needed, maybe wider for 3 columns 
+  width: 750px;
+  max-width: 100%;  Prevent excessive width on large screens 
+}*/
+.settings-columns {
+  display: flex;
+}
+
+/*.settings-column > li {
+  margin-bottom: 10px;  Spacing between items in a column 
+}*/
+/* Remove default dropdown padding for li */
+.dropdown-menu > .settings-container > .settings-column > li {
+  padding: 0; 
+}
+/* Style checkbox group labels */
+.settings-column .control-label { 
+  display: block; 
+  margin-bottom: 5px; 
+  font-weight: bold;
+}
+
+.settings-column .shiny-input-container {width: auto;}
+
+/* Checkbox Group Flexbox Layout */
+#selectedFunds_rtns .shiny-options-group,
+#selectedTkrs_rtns .shiny-options-group {
+  display: flex;
+  flex-wrap: wrap;
+  /* Optional: Control max height and add scroll if needed
+  max-height: 200px; 
+  overflow-y: auto; */
+}
+
+/* Individual Checkbox Styling for Wrapping */
+#selectedFunds_rtns .checkbox,
+#selectedTkrs_rtns .checkbox {
+  /* Adjust width to fit multiple items per row */
+  flex: 0 0 auto; /* Don't grow or shrink, use base width */
+  margin-right: 10px; /* Spacing between items */
+  margin-top: 0;
+}
+/* Ensure label doesn't cause weird wrapping */
+#selectedFunds_rtns .checkbox label,
+#selectedTkrs_rtns .checkbox label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block; /* Or inline-block */
+  max-width: 100%;
+}
+
+
+
+
+
+
+
+
+/* transparent bg */
+/* Universal Transparent Background for Dropdowns and Inputs */
+/* exclude form-control as it is parent of selectize-dropdown
+and we do not want it to create a new stacking context
+which prevents position fixed from working as intended */
+.selectize-input + .selectize-dropdown,
+.dropdown-menu, .selectize-input { background-color: var(--input-bg-transparent) !important; /* Use input transparency */ }
+
+/* cyan transparent border */
+.selectize-input + .selectize-dropdown,
+.dropdown-menu, .selectize-input, .btn, .header-toggle { border-color: var(--border-cyan) !important; /* Use transparent border */ }
+
+/* input border */
+.selectize-input + .selectize-dropdown .option,
+.selectize-input .item {
+    border: 1px solid var(--slctIpt-border); /* Use faint border */
+    border-radius: 3px;
+}
+
+/* small blur bg */
+.selectize-input + .selectize-dropdown .optgroup-header,
+.selectize-input .item,
+.btn {
+    backdrop-filter: var(--small-blur);
+    -webkit-backdrop-filter: var(--small-blur);
+}
+
+/* tiny blur bg*/
+.header-toggle, .dropdown-menu {
+    backdrop-filter: var(--tiny-blur);
+    -webkit-backdrop-filter: var(--tiny-blur);
+}
+
+/* Override hover/active states for dropdown items if needed */
+/* hover/active bg */
+.selectize-dropdown-content div:hover,
+.dropdown-menu > li > a:hover { background-color: rgba(68, 68, 68, 0.4) !important; /* Slightly less transparent #444 */ }
+
+/* hover/active border*/
+.dropdown-menu > li > a:hover { border-color: #666 !important; /* Keep border slightly darker */ }
+
+/* individual elements */
+.header-toggle {
+    background-color: var(--input-bg-transparent); /* Use input transparency */
+    color: rgba(255, 255, 255, 0.7); /* Semi-transparent text/icon */
+}
+.header-toggle:hover { background-color: rgba(51, 51, 51, 0.5); } /* Slightly less transparent on hover */
+
+.main-header { background-color: var(--header-bg-transparent); }
+
+/* Ensure logo and navbar within header inherit or use the transparent background */
+/* (They likely will inherit, but specifying doesn't hurt if needed) */
+.main-header .logo,
+.main-header .navbar {
+    background-color: transparent !important; /* Inherit from .main-header */
+}
+
+/* Make Action Buttons semi-transparent */
+.btn { background-color: rgba(68, 68, 68, 0.3) !important; /* Semi-transparent darker grey */ }
+.btn:hover { background-color: rgba(85, 85, 85, 0.5) !important; /* Less transparent on hover */ }
+
+/* Keep optgroup headers distinct but slightly transparent */
+.selectize-input + .selectize-dropdown .optgroup-header { background-color: rgba(64, 64, 64, 0.7) !important; /* Semi-transparent #404040 */ }
+
+/* Style individual unselected options in the dropdown */
+.selectize-input + .selectize-dropdown .option { background-color: var(--slctIpt-off-bg); /* Use unselected background */ }
+
+/* Style selected items displayed within the input box */
+.selectize-input .item { background-color: var(--slctIpt-on-bg) !important; /* Use selected background */ }
+
+/* Override hover/active states for UNSELECTED dropdown items specifically */
+/* Keep the selected item style distinct */
+.selectize-input + .selectize-dropdown .option:hover,
+.selectize-input + .selectize-dropdown .active {
+    background-color: rgba(85, 85, 85, 0.7) !important; /* Slightly less transparent gray on hover */
+    border-color: rgba(150, 150, 150, 0.6) !important; /* Slightly brighter border on hover */
+}
+/* end transparent bg */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* Glass Effect Slider and checkboxes */
+.irs--shiny { margin: 0 20px; }
+
+.navbar-nav input[type='checkbox'],
+.irs--shiny .irs-line {
+  background: rgba(0, 0, 0, 0.2);
+
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+
+  backdrop-filter: var(--large-blur);
+  -webkit-backdrop-filter: var(--large-blur);
+}
+
+.navbar-nav input[type='checkbox']:checked,
+.irs--shiny .irs-bar {
+  background: linear-gradient(90deg,
+    rgba(0, 255, 242, 0.3),
+    rgba(0, 180, 255, 0.3));
+
+  border: 1px solid rgba(255, 255, 255, 0.2);
+
+  backdrop-filter: var(--medium-blur);
+  -webkit-backdrop-filter: var(--medium-blur);
+}
+
+.irs--shiny .irs-handle {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.2);
+
+  backdrop-filter: var(--medium-blur);
+  -webkit-backdrop-filter: var(--medium-blur);
+
+  border-radius: 50%;
+  box-shadow: 0 0 10px rgba(0, 255, 242, 0.5);
+  top: 20px;
+}
+
+.irs--shiny .irs-handle:hover {
+  background: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 0 15px rgba(0, 255, 242, 0.8);
+}
+
+.irs--shiny .irs-min,
+.irs--shiny .irs-max,
+.irs--shiny .irs-single,
+.irs--shiny .irs-grid-text,
+.navbar-nav .checkbox span {
+  background: rgba(0, 0, 0, 0.7);
+
+  border-radius: 4px;
+  padding: 3px 5px;
+
+  backdrop-filter: var(--medium-blur); /* the blur effect honestly is very minimal and doesn't do much, can be removed if needed */
+  -webkit-backdrop-filter: var(--medium-blur);
+}
+
+/* make the lables more readable */
+.irs--shiny .irs-grid-text {
+  font-size: 10px;
+  line-height: 1;
+}
+
+/* check boxes */
+.navbar-nav input[type='checkbox'] {
+    appearance: none; /* Remove default system appearance */
+    -webkit-appearance: none;
+
+    position: relative; /* Needed for potential pseudo-element checkmark */
+
+    width: 16px; /* Standard checkbox size */
+    height: 16px;
+
+    vertical-align: middle; /* Align checkbox vertically */
+    
+    cursor: pointer;
+
+    transition: background-color 0.2s ease, border-color 0.2s ease;/* i don't think the transition is visible, can be removed if needed */
+}
+
+.navbar-nav input[type='checkbox']:checked::after {
+    content: '';
+
+    display: block;
+    
+    position: absolute;
+    top: 1px;
+    left: 5px;
+    width: 5px;
+    height: 10px;
+
+    border: solid #eee; /* White checkmark */
+    border-width: 0 2px 2px 0;
+
+    transform: rotate(45deg);
+}
+/* end glass effect */
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* full width flex box dropdown selection input */
+/* dropdown box selection box */
+.selectize-dropdown {
+    z-index: 1051 !important; /* Ensure it's on top */
+    overflow-y: auto; 
+}
+  
+/* Apply flexbox to content area */
+.selectize-dropdown .selectize-dropdown-content,
+.selectize-dropdown .optgroup {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    align-items: center;
+  
+    border: 1px solid var(--border-cyan); /* Border around group */
+    border-radius: 4px;
+    transition: border-color 0.2s ease-in-out; /* Smooth border transition */
+    box-sizing: border-box;
+    /*padding: 5px;*/ 
+  
+    overflow-y: auto;
+    max-height: none;
+}
+  
+.selectize-dropdown .optgroup:before {
+    display: none;
+}
+  
+/* Style optgroup headers */
+.selectize-dropdown .optgroup-header {
+    /*flex-basis: 100%; Span full width */
+    
+    padding: 8px 5px;
+    border-right: 1px solid #555;
+    box-sizing: border-box;
+  
+    color: var(--header-text-cyan); 
+    font-weight: bold;
+    transition: color 0.2s ease-in-out; /* Smooth text color transition */
+}
+
+/* Apply hover style to the entire optgroup */
+.selectize-dropdown .optgroup:hover { border-color: var(--border-cyan-hover); /* Uses the NEW hover cyan border variable */ }
+  
+/* Apply hover style to the header text when the group is hovered */
+.selectize-dropdown .optgroup:hover .optgroup-header { color: var(--header-text-cyan-hover); /* Uses the NEW hover cyan text variable */ }
+
+/* Style individual options */
+.selectize-dropdown .option {
+    flex: 0 0 auto; 
+    
+    padding: 3px 5px;
+    
+    border: 1px solid #444; 
+    border-radius: 3px;
+
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+/* end full width flex box dropdown selection input */
