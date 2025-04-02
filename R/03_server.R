@@ -286,7 +286,7 @@ app_server <- function(input, output, session) {
         rtn = if (input$inclCash) cmltvRtn_inclCash
         else cmltvRtn_xcluCash
       ) %>%
-      select(istmt_nbred, type, date, rtn)
+      select(istmt, istmt_nbred, type, date, rtn)
   })
 
   # normal variable as no reaction is needed
@@ -384,7 +384,16 @@ app_server <- function(input, output, session) {
     df <- selectedRtns_rebased()
  
     # Check if no series available
-    if(nrow(df) == 0) return(plotly_empty())
+    if (nrow(df) == 0) {
+      plotly_empty() %>%
+        layout(
+          title = "No return data available for selected instruments/period",
+          plot_bgcolor = '#222', 
+          paper_bgcolor = '#222', 
+          font = list(color = '#eee')
+        ) %>%
+        return()
+    }
     
     range_x <- NULL
     range_y <- NULL # Default to NULL (autoscale)
@@ -433,8 +442,13 @@ app_server <- function(input, output, session) {
         color = ~istmt_nbred,
         linetype = ~type,
         #legendrank = ~rank,
+        text = ~paste0("<b>", istmt, "</b>"), # Bold name
+        #name = ~istmt_nbred,
+        hoverinfo = 'x+y+text', # Display x, y, and the content of 'text'
+        
         type = 'scatter',
         mode = 'lines',
+
         colors = hue_pal(
           l = 75
           # c = 100 # Chroma (saturation). Default is 100. Can adjust if needed.
