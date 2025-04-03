@@ -487,7 +487,7 @@ rtns_df <- rtns_df %>%
   # Create istmt_legend with format: number. annualized return% (2 decimals) istmt
   mutate(
     istmt_legend = sprintf(
-      "%02d. %.2f%% %s",
+      "%02d. | %.2f%% | %s",
       match(istmt, odr),
       rtn_anlzed * 100,
       istmt

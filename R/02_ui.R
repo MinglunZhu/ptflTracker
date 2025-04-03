@@ -140,6 +140,15 @@ app_ui <- tagList(
                       value = F
                     )
                   )
+                ),
+                conditionalPanel(
+                  condition = "input.selected_chart == 'Returns'",
+                  tags$li(  
+                    checkboxInput(
+                      "showLegend", "Show Legend", 
+                      value = T
+                    )
+                  )
                 )
               )
             )

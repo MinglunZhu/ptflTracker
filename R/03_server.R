@@ -471,8 +471,11 @@ app_server <- function(input, output, session) {
           range = range_y # Apply the calculated default Y range
         ),
         legend = list(
-          title = list(text = "Order. Annualized Return% Instrument"),
-          font = list(color = '#eee')
+          title = list(text = "Order. | Annualized Return (Xclu Cash)%<br> | Instrument"),
+          font = list(color = '#eee'),
+          showlegend = isolate(input$showLegend %||% TRUE) # Set initial state
+          #, x = 1.02, # Position slightly right of plot area
+          #xanchor = 'left' # Anchor legend's left edge to position x
           #traceorder = "normal"
         ),
         # Set dark theme colors
@@ -535,13 +538,21 @@ app_server <- function(input, output, session) {
     {
       t <- availableTkrs
 
-      updateCheckboxGroupInput(
+      updateSelectizeInput(
         session, "selectedTkrs_rtns",
         selected = if (length(input$selectedTkrs_rtns) < length(t)) t
         else character(0)
       )
     }
   )
+
+  plot_proxy <- plotlyProxy("rtnsPlot", session)
+
+  observeEvent(
+    input$showLegend, 
+    { plotlyProxyInvoke(plot_proxy, "relayout", list(showlegend = input$showLegend)) }
+    #ignoreNULL = F
+  ) 
 
   ################################################################ Chart Type
 
