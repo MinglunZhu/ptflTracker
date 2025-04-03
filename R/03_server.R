@@ -54,7 +54,7 @@ app_server <- function(input, output, session) {
     d <- selectedDate()
 
     vals <- lapply(
-      names(HLDG_VALS), 
+      names(HLDG_VALS),
       function(n) {
         if (!input$inclCash && n == "Cash") return(NULL)
 
@@ -69,9 +69,9 @@ app_server <- function(input, output, session) {
 
     # Remove NULL entries and combine results
     df <- do.call(rbind, Filter(Negate(is.null), vals))
-    
+
     if (is.null(df)) return(data.frame())
-    
+
     df
   }
 
@@ -95,9 +95,9 @@ app_server <- function(input, output, session) {
       )
     )
     #cached_vals <- cache_hldgVals_tkrs()[[cache_key]]
-    
+
     if (is.null(cached_vals)) {
-      trades_sfs <- trades %>% 
+      trades_sfs <- trades %>%
         filter(fnd %in% sfs)
 
       #if cash is a selected fund, then we use the overall portfolio cash value
@@ -127,16 +127,16 @@ app_server <- function(input, output, session) {
   # Modify fundsPie and tickersPie outputs for a modern/futuristic appearance
   output$fundsPie <- renderPlotly({
     disableIpts()
-    
+
     # Ensure inputs are re-enabled
     on.exit({ enableIpts() })
 
     # Calculate fund values for the selected date
     f <- selectedHldgVals_fnds()
-    
+
     if(nrow(f) == 0) {
       # Return empty plot if no data
-      plot_ly() %>% 
+      plot_ly() %>%
         layout(
           title = "No holdings data available",
           paper_bgcolor = '#222',
@@ -146,12 +146,12 @@ app_server <- function(input, output, session) {
     } else {
       # Add pull column only when we have data
       sfs <- selectedFunds_hldgs()
-      
-      f %>% 
+
+      f %>%
         mutate(pull = ifelse(name %in% sfs, 0.1, 0)) %>%
         plot_ly(
-          labels = ~name, 
-          values = ~val, 
+          labels = ~name,
+          values = ~val,
           type = 'pie',
           source = "fundsPie",
           customdata = ~name,           # for click events
@@ -170,7 +170,7 @@ app_server <- function(input, output, session) {
           opacity = 0.9,
           direction = 'clockwise',
           key = ~name # Add unique key for each slice
-        ) %>% 
+        ) %>%
         htmlwidgets::onRender("
           function(el) {
             el.on('plotly_click', function(d) {
@@ -195,12 +195,12 @@ app_server <- function(input, output, session) {
 
   # Replace plotly_click observer with pie_click observer
   observeEvent(
-    input$pie_click, 
+    input$pie_click,
     {isolate({
       clickedFund <- as.character(input$pie_click$customdata)# Ensure consistent type for comparison
 
       if(!is.null(clickedFund)) {
-        sfs <- selectedFunds_hldgs() 
+        sfs <- selectedFunds_hldgs()
 
         if (clickedFund %in% sfs) {
           s <- setdiff(sfs, clickedFund)
@@ -212,19 +212,19 @@ app_server <- function(input, output, session) {
       }
     })}
   )
-  
+
   # Render tickers pie chart.
   output$tickersPie <- renderPlotly({
     disableIpts()
-    
+
     # Ensure inputs are re-enabled
     on.exit({ enableIpts() })
 
     h <- selectedHldgVals_tkrs()
-    
+
     if(nrow(h) == 0) {
       # Return empty plot if no data
-      plot_ly() %>% 
+      plot_ly() %>%
         layout(
           title = "No holdings data available",
           paper_bgcolor = '#222',
@@ -245,8 +245,8 @@ app_server <- function(input, output, session) {
       h %>%
         plot_ly(
           labels = ~name,
-          values = ~val, 
-          type = 'pie', 
+          values = ~val,
+          type = 'pie',
           hole = 0.6,
           textinfo = 'label+percent',
           insidetextorientation = 'radial',
@@ -286,7 +286,7 @@ app_server <- function(input, output, session) {
         rtn = if (input$inclCash) cmltvRtn_inclCash
         else cmltvRtn_xcluCash
       ) %>%
-      select(istmt, istmt_nbred, type, date, rtn)
+      select(istmt, istmt_legend, type, date, rtn)
   })
 
   # normal variable as no reaction is needed
@@ -300,11 +300,11 @@ app_server <- function(input, output, session) {
     {
       # --- Update the NEW returns slider ---
       min_new <- selectedRtns_raw() %>%
-        group_by(istmt_nbred) %>%
+        group_by(istmt) %>%
         filter(rtn != 0) %>%
         summarise(
           startDate = min(
-            date, 
+            date,
             na.rm = T
           )
         ) %>%
@@ -312,12 +312,12 @@ app_server <- function(input, output, session) {
         max() - 1
 
       # can not dynamically change animation options
-    
+
       # force date update to trigger rebase
       # because rebase no longer triggered by df update
       if (min_new == minDate_rtns_prv) (
-        Sys.time() %>% 
-          needUd_rtns() %>% 
+        Sys.time() %>%
+          needUd_rtns() %>%
           return()
       )
 
@@ -357,16 +357,13 @@ app_server <- function(input, output, session) {
       #common base date
       cbd <- input$selectedDate_rtns
 
-      # check if slider is updated
-      #req(isDate_rtns)
-
       if (cbd <= start_date) return(df)
 
       df %>%
         #rtn before rebased date will be negative and meaningless
         # we still plot them, but won't be shown by default
         #filter(date >= cbd) %>%
-        group_by(istmt_nbred) %>%
+        group_by(istmt_legend) %>%
         mutate(
           baseVal = rtn[date == cbd],
           rtn = (rtn + 1) / (baseVal + 1) - 1
@@ -374,27 +371,27 @@ app_server <- function(input, output, session) {
         select(-baseVal)
     }
   )
-  
+
   output$rtnsPlot <- renderPlotly({
     disableIpts()
-    
+
     # Ensure inputs are re-enabled
     on.exit({ enableIpts() })
 
     df <- selectedRtns_rebased()
- 
+
     # Check if no series available
     if (nrow(df) == 0) {
       plotly_empty() %>%
         layout(
           title = "No return data available for selected instruments/period",
-          plot_bgcolor = '#222', 
-          paper_bgcolor = '#222', 
+          plot_bgcolor = '#222',
+          paper_bgcolor = '#222',
           font = list(color = '#eee')
         ) %>%
         return()
     }
-    
+
     range_x <- NULL
     range_y <- NULL # Default to NULL (autoscale)
     x_sd <- isolate(input$selectedDate_rtns)
@@ -410,14 +407,14 @@ app_server <- function(input, output, session) {
           date >= x_sd
           & date <= x_ed
         )
-        
+
       if (nrow(xRange_df) > 0) {
         min_y <- min(
-          xRange_df$rtn, 
+          xRange_df$rtn,
           na.rm = T
         )
         max_y <- max(
-          xRange_df$rtn, 
+          xRange_df$rtn,
           na.rm = T
         )
 
@@ -439,13 +436,13 @@ app_server <- function(input, output, session) {
       plot_ly(
         x = ~date,
         y = ~rtn,
-        color = ~istmt_nbred,
+        color = ~istmt_legend,
         linetype = ~type,
         #legendrank = ~rank,
         text = ~paste0("<b>", istmt, "</b>"), # Bold name
         #name = ~istmt_nbred,
         hoverinfo = 'x+y+text', # Display x, y, and the content of 'text'
-        
+
         type = 'scatter',
         mode = 'lines',
 
@@ -453,28 +450,28 @@ app_server <- function(input, output, session) {
           l = 75
           # c = 100 # Chroma (saturation). Default is 100. Can adjust if needed.
         )(
-          df$istmt_nbred %>%
+          df$istmt_legend %>%
             unique() %>%
             length()
         )
-      ) %>% 
+      ) %>%
       layout(
         title = "Cumulative Daily USD Returns",
         xaxis = list(
           title = "Date",
-          gridcolor = '#444', 
+          gridcolor = '#444',
           color = '#eee',
           range = range_x
         ),
         yaxis = list(
-          title = "Cumulative Return", 
+          title = "Cumulative Return",
           tickformat = ".2%",
           gridcolor = '#444',
           color = '#eee',
           range = range_y # Apply the calculated default Y range
         ),
         legend = list(
-          title = list(text = "Instrument"),
+          title = list(text = "Order. Annualized Return% Instrument"),
           font = list(color = '#eee')
           #traceorder = "normal"
         ),
@@ -484,12 +481,12 @@ app_server <- function(input, output, session) {
         font = list(color = '#eee')
       )
   })
-  
+
   availableFunds <- openFunds_sorted
   availableTkrs <- unlist(openTkrGrps)
 
   observeEvent(
-    input$inclClosed, 
+    input$inclClosed,
     {
       ## Update the variables first thing
       # Update Fund Choices based on checkbox
@@ -505,28 +502,28 @@ app_server <- function(input, output, session) {
         session, "selectedFunds_rtns",
         choices = availableFunds,
         # Preserve current selection if items still exist in the new choices
-        selected = intersect(input$selectedFunds_rtns, availableFunds) 
+        selected = intersect(input$selectedFunds_rtns, availableFunds)
       )
-      
+
       updateSelectizeInput(
         session, "selectedTkrs_rtns",
         choices = t,
         # Preserve current selection if items still exist in the new choices
-        selected = intersect(input$selectedTkrs_rtns, availableTkrs) 
+        selected = intersect(input$selectedTkrs_rtns, availableTkrs)
         # server = TRUE # Consider if list becomes extremely large
       )
-    }, 
-    ignoreNULL = T, 
+    },
+    ignoreNULL = T,
     ignoreInit = T # Prevent running on startup
   )
 
   observeEvent(
-    input$tglAllFunds_btn, 
+    input$tglAllFunds_btn,
     {
       f <- availableFunds
 
       updateCheckboxGroupInput(
-        session, "selectedFunds_rtns", 
+        session, "selectedFunds_rtns",
         selected = if (length(input$selectedFunds_rtns) < length(f)) f
         else character(0)
       )
@@ -534,12 +531,12 @@ app_server <- function(input, output, session) {
   )
 
   observeEvent(
-    input$tglAllTkrs_btn, 
+    input$tglAllTkrs_btn,
     {
       t <- availableTkrs
 
       updateCheckboxGroupInput(
-        session, "selectedTkrs_rtns", 
+        session, "selectedTkrs_rtns",
         selected = if (length(input$selectedTkrs_rtns) < length(t)) t
         else character(0)
       )
@@ -551,24 +548,24 @@ app_server <- function(input, output, session) {
   output$mainContent <- renderUI({
     if (input$selected_chart == "Returns") {
       plotlyOutput(
-        "rtnsPlot", 
+        "rtnsPlot",
         height = "100vh"
       )
     } else {
       fluidRow(
         column(
-          6, 
+          6,
           plotlyOutput(
-            "fundsPie", 
-            height = "100vh", 
+            "fundsPie",
+            height = "100vh",
             width = "100%"
           )
         ),
         column(
-          6, 
+          6,
           plotlyOutput(
-            "tickersPie", 
-            height = "100vh", 
+            "tickersPie",
+            height = "100vh",
             width = "100%"
           )
         )

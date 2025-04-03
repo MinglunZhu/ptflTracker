@@ -47,22 +47,22 @@ trades <- trades %>%
   ) %>%
   mutate(
     cur = if_else(
-      is.na(cur), 
+      is.na(cur),
       case_when(
         grepl(
-          "^hkse:", tkr, 
+          "^hkse:", tkr,
           ignore.case = T
         ) ~ "HKD",
         grepl(
-          "^(fra:|xpar:)", tkr, 
+          "^(fra:|xpar:)", tkr,
           ignore.case = T
         ) ~ "EUR",
         grepl(
-          "^jse:", tkr, 
+          "^jse:", tkr,
           ignore.case = T
         ) ~ "ZAR",
         grepl(
-          "^(shse:|szse:)", tkr, 
+          "^(shse:|szse:)", tkr,
           ignore.case = T
         ) ~ "CNY",
         T ~ "USD"
@@ -76,13 +76,13 @@ start_date <- min(trades$date)
 unique_tickers <- unique(trades$yahoo_tkr)
 uniqueFunds <- unique(trades$fund)
 all_dates <- seq(
-  start_date, END_DATE, 
+  start_date, END_DATE,
   by = "days"
 )
 dayCnt <- length(all_dates)
 #Using empty xts to hold downloaded prices for all dates, then convert to dataframe is more perfomrance friendly
 mtXts_mtx <- matrix(
-  nrow = dayCnt, 
+  nrow = dayCnt,
   ncol = 0
 ) %>% xts(all_dates)
 zeroXts_vctr <- rep(0, dayCnt) %>% xts(order.by = all_dates)
@@ -108,13 +108,13 @@ for (t in unique_tickers) {
   if (unique(trades$cur[trades$yahoo_tkr == t]) == 'ZAR') p <- p / 100
 
   colnames(p) <- t
-  
+
   if (is.null(prices_xts)) {
     prices_xts <- p
   } else {
     prices_xts <- merge(
       prices_xts, p,
-      join = "outer", 
+      join = "outer",
       check.names = F
     )
   }
@@ -126,8 +126,8 @@ prices_xts <- prices_xts %>%
 
 prices_daily <- mtXts_mtx %>%
   merge(
-    prices_xts, 
-    all = T, 
+    prices_xts,
+    all = T,
     check.names = F
   ) %>%
   na.locf()
@@ -147,7 +147,7 @@ prices_daily_df <- prices_daily %>%
 #download exchange rates
 currencies <- trades %>%
   distinct(cur) %>%
-  filter(cur != "USD") %>%  
+  filter(cur != "USD") %>%
   pull(cur)
 
 # download exchange rates and store in a dataframe in 3 columns date, cur, xchgRate_usd
@@ -161,20 +161,20 @@ xchgRates_df <- expand_grid(
     currencies %>%
       lapply(function(curr) {
         cat("Downloading", curr, "/USD FX data\n")
-        
+
         rates <- paste0(curr, "USD=X") %>%
           safeGetSymbols() %>%
           Cl()
-        
+
         # Convert xts to dataframe
         df <- data.frame(
           date = index(rates),
           xchgRate_usd = coredata(rates)
         ) %>%
           mutate(cur = curr)
-        
+
         colnames(df)[2] <- "xchgRate_usd"
-        
+
         df
       }) %>%
       bind_rows() %>% # Combine list of dataframes into one
@@ -189,7 +189,7 @@ xchgRates_df <- expand_grid(
   group_by(cur) %>%
   fill(xchgRate_usd, .direction = "down") %>% # Last Observation Carried Forward
   # Optional: Fill initial NAs if any currency has no data before the first date
-  # fill(xchgRate_usd, .direction = "up") %>% 
+  # fill(xchgRate_usd, .direction = "up") %>%
   ungroup()
   # Ensure no NAs remain (shouldn't happen if LOCF worked and USD is handled)
   # filter(!is.na(xchgRate_usd)) # Reconsider if initial NAs are possible/problematic
@@ -209,7 +209,7 @@ trades <- trades %>%
   #adjust for stock splits
   # 2. Join Yahoo prices onto the trades dataframe
   left_join(
-    prices_daily_df, 
+    prices_daily_df,
     by = c("date", "yahoo_tkr" = "tkr")
   ) %>%
   mutate(
@@ -219,9 +219,9 @@ trades <- trades %>%
 
     # Calculate the ratio (only if p_trade and yahoo_p are valid)
     ratio = ifelse(
-      price_trade != 0 
-      & !is.na(price), 
-      price / price_trade, 
+      price_trade != 0
+      & !is.na(price),
+      price / price_trade,
       NA
     ),
 
@@ -229,11 +229,11 @@ trades <- trades %>%
     adj_unitCnt = unitCnt * case_when(
       (
         # No adjustment if ratio is NA or amount is 0
-        is.na(ratio) 
+        is.na(ratio)
         | amt == 0
         # Special tolerance for AMTD on specific date
         | abs(ratio - 1) < if_else(tkr == 'AMTD' & date == '2023-11-17', .5, TOLERANCE)
-      ) ~ 1, 
+      ) ~ 1,
       # Reverse split
       ratio > 1 ~ 1 / round(ratio),
       # Forward split
@@ -266,7 +266,7 @@ maxDecimals <- trades$unitCnt %>%
   strsplit("\\.") %>%
   sapply(function(ps) {
     if (length(ps) == 1) return(0)
-    
+
     nchar(ps[2])
   }) %>%
   max(na.rm = T)
@@ -274,7 +274,7 @@ maxDecimals <- trades$unitCnt %>%
 # 1. Create a complete grid of all dates and tickers in the subset
 vals_df <- expand_grid(
   fund = unique(trades$fund),
-  date = all_dates, 
+  date = all_dates,
   # Get unique tickers from the input trades
   tkr = unique_tickers
 ) %>%
@@ -285,13 +285,13 @@ vals_df <- expand_grid(
       group_by(fund, date, yahoo_tkr) %>%
       summarise(
         adj_unitCnt = sum(
-          adj_unitCnt, 
+          adj_unitCnt,
           na.rm = T
-        ), 
+        ),
         .groups = 'drop'
-      ), 
+      ),
     by = c(
-      'fund', "date", 
+      'fund', "date",
       'tkr' = "yahoo_tkr"
     )
   ) %>%
@@ -306,9 +306,9 @@ vals_df <- expand_grid(
   mutate(cmltvUnitCnt = cumsum(adj_unitCnt) %>% round(maxDecimals)) %>%
   #ungroup() %>%
   #select(date, yahoo_tkr, holding_qty)
-  # 4. Join holdings with daily prices 
+  # 4. Join holdings with daily prices
   left_join(
-    prices_daily_df, 
+    prices_daily_df,
     by = c("date", "tkr")
   ) %>%
   # Calculate market value for each holding on each day
@@ -362,7 +362,7 @@ rtns_df <- tkrs_df %>%
 
 #rtns df already grouped by istmt
 sc_df <- calcSttgCash(rtns_df)
-  
+
 rtns_df <- rtns_df %>%
   left_join(
     sc_df,
@@ -392,7 +392,7 @@ hldgs_df <- bind_rows(
 # so we will calculate them dynamically
 calcHldgVals_tkrs <- function(FUNDS, INCL_CASH) {
   r <- filter(hldgs_df, fund %in% FUNDS)
-  
+
   if (!INCL_CASH) r <- filter(r, tkr != 'Cash')
 
   if (length(FUNDS) == 1) return(r)
@@ -419,56 +419,101 @@ for (n in NAMES_BMS) {
       na.locf() %>%
       na.omit()
   )[, 1] %>%
-    dailyReturn() %>%
-    calcCmltvRtns()
+    dailyReturn()
 
   df <- data.frame(
     date = index(r),
     istmt = n,
     type = 'Portfolio / Benchmark',
-    cmltvRtn_xcluCash = coredata(r)
+    rtn_xcluCash = coredata(r)
   )
-  
-  colnames(df)[4] <- "cmltvRtn_xcluCash" 
-  
+
+  colnames(df)[4] <- "rtn_xcluCash"
+
   rtns_df <- bind_rows(
     rtns_df,
     mutate(
-      df, 
+      df,
+      cmltvRtn_xcluCash = calcCmltvRtns(rtn_xcluCash),
       cmltvRtn_inclCash = cmltvRtn_xcluCash
     )
   )
 }
 
+rtns_anlzed_df <- rtns_df %>%
+  # Ensure we only use days where a return could be calculated
+  filter(rtn_xcluCash != 0) %>%
+  # Group by instrument to calculate per-instrument metrics
+  group_by(istmt) %>%
+  summarise(
+    # Calculate the sum of log growth factors (more stable than product)
+    # Add a very small number to handle potential returns of exactly -1 (100% loss)
+    # Or filter out rtn_xcluCash <= -1 if that's more appropriate.
+    log_growth_factors = sum( log(1 + pmax(rtn_xcluCash, -0.999999)) ),
+    dayCnt = n(), # Count the number of valid return days
+    .groups = 'drop' # Drop grouping after summarising
+  ) %>%
+  # Annualize using 252 trading days
+  mutate(rtn_anlzed = exp(log_growth_factors / dayCnt)^252 - 1) %>%
+  select(istmt, rtn_anlzed)
+
+# Create the ordered vector according to the specified requirements
+# Order the funds by annualized returns (descending), but keep "Misc." at the end
+uniqueFunds_sorted <- rtns_anlzed_df %>%
+  filter(istmt %in% uniqueFunds & istmt != "Misc.") %>%
+  arrange(desc(rtn_anlzed)) %>%
+  pull(istmt) %>%
+  c("Misc.")
+
+# Order the tickers by annualized returns (descending)
+uniqueTkrs_sorted <- rtns_anlzed_df %>%
+  filter(istmt %in% unique_tickers) %>%
+  arrange(desc(rtn_anlzed)) %>%
+  pull(istmt)
+
 odr <- c(
-  'Overall Portfolio', 
-  uniqueFunds,
-  unique_tickers, 
+  "Overall Portfolio",
+  uniqueFunds_sorted,
+  uniqueTkrs_sorted,
   NAMES_BMS
 )
 
-rtns_df <- mutate(rtns_df, istmt_nbred = sprintf("%02d. %s", match(istmt, odr), istmt))
+# Join rtns_df with rtns_anlzed_df to get the annualized returns
+rtns_df <- rtns_df %>%
+  left_join(
+    rtns_anlzed_df, 
+    by = "istmt"
+  ) %>%
+  # Create istmt_legend with format: number. annualized return% (2 decimals) istmt
+  mutate(
+    istmt_legend = sprintf(
+      "%02d. %.2f%% %s",
+      match(istmt, odr),
+      rtn_anlzed * 100,
+      istmt
+    )
+  )
 
 # Get latest holdings for each fund/ticker combination
 latest_hldgs <- vals_df %>%
   filter(date == END_DATE) %>% # Filter for the last calculated date
   select(fund, tkr, cmltvUnitCnt)
 
-uniqueFunds_sorted <- sortFunds(uniqueFunds)
 # Identify open funds (positive holding for the fund itself, excluding individual tickers)
 # This requires summarizing vals_df by fund first
 openFunds_sorted <- latest_hldgs %>%
   group_by(fund) %>%
   summarise(
     unitCnt = sum(
-      cmltvUnitCnt, 
+      cmltvUnitCnt,
       na.rm = T
-    ), 
+    ),
     .groups = 'drop'
   ) %>%
   filter(unitCnt > 0) %>% # Check fund value
-  pull(fund) %>%
-  sortFunds()
+  asFctrCol(fund, uniqueFunds_sorted) %>%
+  arrange(fund) %>%
+  pull(fund)
 
 # Determine fund assignments for each ticker
 uniqueTkrGrps <- getTkrGrps(trades, yahoo_tkr)

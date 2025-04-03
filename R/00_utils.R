@@ -12,22 +12,22 @@ safeGetSymbols <- function(TKR, MAX_ATTEMPTS = 3, DELAY = 15) {
     result <- try(
       getSymbols(
         TKR,
-        auto.assign = F, 
-        from = start_date, 
+        auto.assign = F,
+        from = start_date,
         to = END_DATE
-      ), 
+      ),
       silent = T
     )
 
     if (!inherits(result, "try-error")) {
       # save the result to the RCDS_DIR
       write.zoo(
-        result, fp, 
+        result, fp,
         sep = ","
       )
 
       return(result)
-    } 
+    }
 
     if(attempt >= MAX_ATTEMPTS) {
       if (file.exists(fp)) {
@@ -54,12 +54,12 @@ safeGetSymbols <- function(TKR, MAX_ATTEMPTS = 3, DELAY = 15) {
 summariseValCfBy <- function(DF, ...) {
   join_cols <- quos(...)
   group_cols <- c(quo_name(join_cols[[1]]), "date")
-  
+
   DF %>%
     group_by(!!!syms(group_cols)) %>%
     summarise(
       val = sum(
-        val, 
+        val,
         na.rm = T
       )
     ) %>%
@@ -92,14 +92,17 @@ calcSttgCash <- function(DF) {
     mutate(sttgCash = if_else(minCmltvCf < 0, -minCmltvCf, 0))
 }
 
-sortFunds <- function(vctr) {
-  if ("Misc." %in% vctr) {
-    vctr <- vctr %>%
-      setdiff("Misc.") %>%
-      c("Misc.")
-  }
+asFctrCol <- function(DF, COL, LVLS) {
+  # Capture the COL expression without evaluating it
+  col_xpr <- rlang::enquo(COL)
 
-  vctr
+  DF %>%
+    mutate(
+      !!col_xpr := factor(
+        !!col_xpr,
+        levels = LVLS
+      )
+    )
 }
 
 getTkrGrps <- function(DF, TKR_COL) {
@@ -111,50 +114,36 @@ getTkrGrps <- function(DF, TKR_COL) {
   df <- DF %>%
     ungroup() %>%
     # Use only relevant columns and distinct ticker/fund pairs
-    distinct(fund, !!tkr_expr)%>%
-    # Filter out any rows where fund might be NA or empty if they exist
-    #filter(!is.na(fund) & fund != "") %>% 
+    distinct(fund, !!tkr_expr) %>%
     # Count funds per ticker
     add_count(
-      !!tkr_expr, 
+      !!tkr_expr,
       name = "fundCnt"
     ) %>%
     # Assign group name
     mutate(grp = if_else(fundCnt > 1, "Multiple Funds", fund)) %>%
     # Keep only one row per ticker (the group name is now consistent for multi-fund tickers)
-    distinct(grp, !!tkr_expr)
-    # If a ticker had no fund assignment in trades, group_name will be NA. 
-    # Decide how to handle these - perhaps they shouldn't be selectable? 
-    # For now, let's filter them out if they don't have a group.
-    #filter(!is.na(group_name)) %>% 
-    # Use the ticker symbol as the display label
-    # Arrange for consistent order within groups
-    #arrange(group_name, label)
+    distinct(grp, !!tkr_expr) %>%
+    asFctrCol(grp, c(uniqueFunds_sorted, "Multiple Funds")) %>%
+    asFctrCol(!!tkr_expr, uniqueTkrs_sorted) %>%
+    arrange(grp, !!tkr_expr)
 
-  df <- df %>%
-    mutate(
-      grp = factor(
-        grp,
-        levels = df$grp %>% unique() %>% sortFunds()
-      )
-    ) %>%
-    arrange(grp)
-  
-  #must use the sorted grp, that's why we save the sorted df first
   df %>%
-    #Create the named list structure: list("GroupName" = c("Label"="Value", ...), ...)
-    { setNames(.[[tkr_colName]], .[[tkr_colName]]) } %>% # Create the named vector part (Label=Value)
-    split(df$grp)   # Split into list based on group_name,
+    # Use standard evaluation [[ ]] with the *string name* of the column
+    # Use the ticker column for both the label (name) and the value
+    { stats::setNames(.[[tkr_colName]], .[[tkr_colName]]) } %>% 
+    # Split the named vector into a list based on the ordered factor 'grp'
+    base::split(df$grp)   
 }
 
 createPieLayout <- function(
-  PLOT, TITLE, 
+  PLOT, TITLE,
   TITLE_FONT = list(
-    family = "Arial", 
-    size = 18, 
+    family = "Arial",
+    size = 18,
     color = "#eee"
   ),
-  FONT = list(color = '#eee'), 
+  FONT = list(color = '#eee'),
   BG_COLOR = '#222'
 ) {
   layout(
