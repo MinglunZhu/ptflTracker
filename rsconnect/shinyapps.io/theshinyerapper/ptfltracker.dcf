@@ -1,0 +1,10 @@
+name: ptfltracker
+title:
+username: theshinyerapper
+account: theshinyerapper
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 14425731
+bundleId: 10052998
+url: https://theshinyerapper.shinyapps.io/ptfltracker/
+version: 1

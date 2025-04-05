@@ -2,12 +2,20 @@
 
 # needed for running the app without the run app function from RStudio
 addResourcePath(
-  prefix = "static", 
+  prefix = "static",
   directoryPath = "www"
+)
+
+options(
+  # 1 by defaul, but 2 can be use for circle / round charts
+  spinner.type = 1,
+  spinner.color = "#00fff2", # Your cyan color
+  spinner.color.background = 'rgba(50, 50, 50, 0.2)'
 )
 
 app_ui <- tagList(
   useShinyjs(),
+
   tags$head(
     # Link to the external CSS file
     tags$link(
@@ -18,14 +26,9 @@ app_ui <- tagList(
     # Link to the external JavaScript file
     tags$script(src = "static/script.js")
   ),
-  # Add the activation button here, positioned fixed
-  tags$button(
-    id = "header-toggle-btn",
-    class = "header-toggle",
-    icon("bars") # Using a Font Awesome icon (requires fontawesome library)
-    # Or use text: "Menu"
-  ),
+
   dashboardPage(
+    #the first element must be header
     dashboardHeader(
       title = "Interactive Portfolio Tracker",
       # Chart Menu remains unchanged
@@ -156,9 +159,54 @@ app_ui <- tagList(
         )
       )
     ),
+
+    # very fixed structure expected, the second must be aside
     # No sidebar
     dashboardSidebar(disable = T),
+    
     # Main content area for the plot
-    dashboardBody(uiOutput("mainContent")) # end dashboardBody
+    dashboardBody(
+      conditionalPanel(
+        condition = "input.selected_chart == 'Returns'",
+        shinycssloaders::withSpinner(
+          plotlyOutput(
+            "rtnsPlot",
+            height = "100vh"
+          )
+        )
+      ),
+      conditionalPanel(
+        condition = "input.selected_chart == 'Holdings'",
+        shinycssloaders::withSpinner(
+          fluidRow(
+            column(
+              6,
+              plotlyOutput(
+                "fundsPie",
+                height = "100vh",
+                width = "100%"
+              )
+            ),
+            column(
+              6,
+              plotlyOutput(
+                "tickersPie",
+                height = "100vh",
+                width = "100%"
+              )
+            )
+          ),
+          type = 2
+        )
+      ),
+
+      # Add the activation button here, positioned fixed
+      tags$button(
+        id = "header-toggle-btn",
+        class = "header-toggle",
+        icon("bars") # Using a Font Awesome icon (requires fontawesome library)
+        # Or use text: "Menu"
+      ),
+    ) # end dashboardBody
   )
 )

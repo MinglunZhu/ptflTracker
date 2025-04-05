@@ -47,7 +47,8 @@ body, .content-wrapper, .right-side { background-color: #222; }
 .irs--shiny .irs-max,
 .irs--shiny .irs-single,
 .irs--shiny .irs-grid-text,
-body, .main-header, .content-wrapper, .right-side, .selectize-input, .form-control, .selectize-dropdown, .dropdown-menu, .btn { color: #eee; }
+body, .main-header, .content-wrapper, .right-side, .selectize-input, .form-control, .selectize-dropdown, .dropdown-menu,
+.btn { color: #eee; }
 
 /* Hover/active styles */
 /* using transparent bg, but may use this for some other elements
@@ -73,6 +74,13 @@ body, .main-header, .content-wrapper, .right-side, .selectize-input, .form-contr
   display: inline-block !important;
 }
 /* end dark mode */
+
+
+
+
+
+
+
 
 
 

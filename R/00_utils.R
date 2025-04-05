@@ -3,6 +3,80 @@
 RCDS_DIR <- 'rcds/'
 # end consts
 
+################################################################## Copied from stkVal
+# unfortunately, for shinyapps.io we can not use custom packages
+# so, we will copy needed functions here
+reformatTkr <- function(t) {
+  tkr_guru <- t %>%
+    #for lse iob
+    str_remove('\\.il') %>%
+    str_replace('\\/', '.') %>%
+    str_replace('\\^([a-zA-z]*)(\\.PFD)?$', 'p\\1.PFD')
+
+  #for US se
+  tkr_yh <- t %>%
+    str_replace('\\/', '-') %>%
+    str_replace('\\^', '-P') %>%
+    str_remove('\\.PFD$')
+
+  tkr_fmp <- tkr_yh
+
+  #for other se
+  tmp <- str_match(t, '([a-z]{3,4})\\:([a-zA-Z0-9\\.]+)')
+  xchg <- tmp[1, 2]#exchange code
+  tmp <- tmp[1, 3]#ticker code
+
+  if (!is.na(xchg)) {
+    if (xchg == 'hkse') {
+      suffix_fmp <- suffix_yh <- 'HK'
+
+      #if hkse, and first digit is 0, remove it
+      #else keep it
+      # if (str_sub(tmp, 1, 1) == '0') {
+      #   tmp <- str_sub(tmp, 2)
+      # }
+      tmp <- str_remove(tmp, '^0')
+    } else if (xchg == 'fra') {
+      suffix_yh <- 'F'
+      suffix_fmp <- 'de'
+    } else if (xchg == 'xpar') suffix_fmp <- suffix_yh <- 'PA'
+    else if (xchg == 'lse') {
+      #remove .PFD at the end
+      # if (str_sub(tmp, -4, -1) == '.PFD') {
+      #   tmp <- str_sub(tmp, 1, -5)
+      # }
+      #
+      # #remove last .
+      # if (str_sub(tmp, -1, -1) == '.') {
+      #   tmp <- str_sub(tmp, 1, -2)
+      # }
+      tmp <- str_remove(tmp, '\\.PFD$')
+
+      if (str_detect(tmp, RX_PTN_LSE_IOB)) {
+        suffix_yh <- 'IL'
+
+        tmp <- str_remove(tmp, RX_PTN_LSE_IOB)
+      } else suffix_yh <- 'L'
+
+      suffix_fmp <- suffix_yh
+
+      tmp <- str_remove(tmp, '\\.$')
+    } else if (xchg == 'shse') suffix_fmp <- suffix_yh <- 'SS'
+    else if (xchg == 'szse') suffix_fmp <- suffix_yh <- 'SZ'
+    else if (xchg == 'jse') suffix_fmp <- suffix_yh <- 'JO'
+
+    tkr_yh <- paste0(tmp, '.', suffix_yh)
+    tkr_fmp <- paste0(tmp, '.', suffix_fmp)
+  }
+
+  c(
+    guru = tkr_guru,
+    yh = tkr_yh,
+    fmp = tkr_fmp
+  )
+}
+################################################################## End stkVal
+
 # Add a function to safely download symbols with retries:
 safeGetSymbols <- function(TKR, MAX_ATTEMPTS = 3, DELAY = 15) {
   attempt <- 1

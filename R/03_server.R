@@ -8,9 +8,17 @@ CYBER_COLORS <- c(
 #end consts
 
 app_server <- function(input, output, session) {
-  session$onSessionEnded(function() {
-    stopApp()
-  })
+  message("--- app_server function started ---")
+
+  session$onSessionEnded(function() stopApp())
+
+  # --- Configure progressr handler for Shiny ---
+  progressr::handler_shiny(session = session) %>% progressr::handlers()
+  # Ensure this runs once per session start within the module server
+
+  # --- Call the Data Loader Module ---
+  status <- dataInitServer("dataInit")
+  # This returns a list of vars: data$status, data$rtns_df, etc.
 
   # Reactive val for filtering tickers breakdown by a fund click (NULL = overall)
   # Replace single selection with multiple selections
@@ -51,7 +59,7 @@ app_server <- function(input, output, session) {
 
   getHldgVals <- function(HLDG_VALS) {
     # filter values for the selected date
-    d <- selectedDate()
+    d <- input$selectedDate_hldgs
 
     vals <- lapply(
       names(HLDG_VALS),
@@ -76,122 +84,122 @@ app_server <- function(input, output, session) {
   }
 
   # needed for reactive context which caches the results
-  selectedHldgVals_fnds <- reactive({ getHldgVals(hldgVals_fnds) })
+  #selectedHldgVals_fnds <- reactive({ getHldgVals(hldgVals_fnds) })
 
   selectedHldgVals_tkrs <- reactive({
     # Tickers breakdown: if a fund is selected, use that trades subset; else overall
-    sfs <- selectedFunds_hldgs()
+    #sfs <- selectedFunds_hldgs()
 
     #dynamic calculation for the selected funds
     # check if there is cached data for the selected funds combinations
     # if not, calculate it and store it in the cache
     # Create cache key by sorting and concatenating fund names
-    cache_key <- if_else(
-      length(sfs) == 0,
-      "op",
-      paste(
-        sort(sfs),
-        collapse = "|"
-      )
-    )
+    # cache_key <- if_else(
+    #   length(sfs) == 0,
+    #   "op",
+    #   paste(
+    #     sort(sfs),
+    #     collapse = "|"
+    #   )
+    # )
     #cached_vals <- cache_hldgVals_tkrs()[[cache_key]]
 
-    if (is.null(cached_vals)) {
-      trades_sfs <- trades %>%
-        filter(fnd %in% sfs)
+    # if (is.null(cached_vals)) {
+    #   trades_sfs <- trades %>%
+    #     filter(fnd %in% sfs)
 
-      #if cash is a selected fund, then we use the overall portfolio cash value
-      #otherwise we calculate the cash value for the selected funds
-      if("Cash" %in% sfs) {
-        #cached_vals <- calcHldgVals_tkrs(TRADES = trades_sfs)
-      } else {
-        cc <- calcCumCash(trades_sfs)
-        #cached_vals <- calcHldgVals_tkrs(calcSttgCash(cc) + cc, trades_sfs)
-      }
+    #   #if cash is a selected fund, then we use the overall portfolio cash value
+    #   #otherwise we calculate the cash value for the selected funds
+    #   if("Cash" %in% sfs) {
+    #     #cached_vals <- calcHldgVals_tkrs(TRADES = trades_sfs)
+    #   } else {
+    #     cc <- calcCumCash(trades_sfs)
+    #     #cached_vals <- calcHldgVals_tkrs(calcSttgCash(cc) + cc, trades_sfs)
+    #   }
 
-      # Update cache
-      # something something about atomic and race conditions
-      cache_hldgVals_tkrs() %>%
-        within(
-          {
-            .[[cache_key]] <- cached_vals
-          }
-        ) %>%
-        cache_hldgVals_tkrs()
-    }
+    #   # Update cache
+    #   # something something about atomic and race conditions
+    #   cache_hldgVals_tkrs() %>%
+    #     within(
+    #       {
+    #         .[[cache_key]] <- cached_vals
+    #       }
+    #     ) %>%
+    #     cache_hldgVals_tkrs()
+    # }
 
-    # Calculate tkr values for the selected date
-    getHldgVals(cached_vals)
+    # # Calculate tkr values for the selected date
+    # getHldgVals(cached_vals)
   })
 
   # Modify fundsPie and tickersPie outputs for a modern/futuristic appearance
-  output$fundsPie <- renderPlotly({
-    disableIpts()
+  # output$fundsPie <- renderPlotly({
+  #   disableIpts()
 
-    # Ensure inputs are re-enabled
-    on.exit({ enableIpts() })
+  #   # Ensure inputs are re-enabled
+  #   on.exit({ enableIpts() })
 
-    # Calculate fund values for the selected date
-    f <- selectedHldgVals_fnds()
+  #   # Calculate fund values for the selected date
+  #   f <- selectedHldgVals_fnds()
 
-    if(nrow(f) == 0) {
-      # Return empty plot if no data
-      plot_ly() %>%
-        layout(
-          title = "No holdings data available",
-          paper_bgcolor = '#222',
-          plot_bgcolor = '#222',
-          font = list(color = '#eee')
-        )
-    } else {
-      # Add pull column only when we have data
-      sfs <- selectedFunds_hldgs()
+  #   if(nrow(f) == 0) {
+  #     # Return empty plot if no data
+  #     plot_ly() %>%
+  #       layout(
+  #         title = "No holdings data available",
+  #         paper_bgcolor = '#222',
+  #         plot_bgcolor = '#222',
+  #         font = list(color = '#eee')
+  #       )
+  #   } else {
+  #     # Add pull column only when we have data
+  #     sfs <- selectedFunds_hldgs()
 
-      f %>%
-        mutate(pull = ifelse(name %in% sfs, 0.1, 0)) %>%
-        plot_ly(
-          labels = ~name,
-          values = ~val,
-          type = 'pie',
-          source = "fundsPie",
-          customdata = ~name,           # for click events
-          pull = ~pull,                # pull out selected slice
-          hole = 0.6,
-          textinfo = 'label+percent',
-          insidetextorientation = 'radial',
-          marker = list(
-            line = list(
-              color = 'rgba(0, 255, 242, 0.3)',  # Cyan glow effect
-              width = 1
-            ),
-            colors = CYBER_COLORS
-          ),
-          hoverinfo = 'label+percent+value',
-          opacity = 0.9,
-          direction = 'clockwise',
-          key = ~name # Add unique key for each slice
-        ) %>%
-        htmlwidgets::onRender("
-          function(el) {
-            el.on('plotly_click', function(d) {
-              console.log('Click event:', d);
-              Shiny.setInputValue('pie_click', {
-                customdata: d.points[0].customdata,
-                curveNumber: d.points[0].curveNumber,
-                timestamp: new Date()
-              });
-            });
-          }
-        ") %>%
-        createPieLayout(
-          "Holdings by Fund",
-          FONT = list(
-            color = '#00fff2',  # Cyan text
-            family = "Arial"
-          )
-        )
-    }
-  })
+  #     f %>%
+  #       mutate(pull = ifelse(name %in% sfs, 0.1, 0)) %>%
+  #       plot_ly(
+  #         labels = ~name,
+  #         values = ~val,
+  #         type = 'pie',
+  #         source = "fundsPie",
+  #         customdata = ~name,           # for click events
+  #         pull = ~pull,                # pull out selected slice
+  #         hole = 0.6,
+  #         textinfo = 'label+percent',
+  #         insidetextorientation = 'radial',
+  #         marker = list(
+  #           line = list(
+  #             color = 'rgba(0, 255, 242, 0.3)',  # Cyan glow effect
+  #             width = 1
+  #           ),
+  #           colors = CYBER_COLORS
+  #         ),
+  #         hoverinfo = 'label+percent+value',
+  #         opacity = 0.9,
+  #         direction = 'clockwise',
+  #         key = ~name # Add unique key for each slice
+  #       ) %>%
+  #       htmlwidgets::onRender("
+  #         function(el) {
+  #           el.on('plotly_click', function(d) {
+  #             console.log('Click event:', d);
+  #             Shiny.setInputValue('pie_click', {
+  #               customdata: d.points[0].customdata,
+  #               curveNumber: d.points[0].curveNumber,
+  #               timestamp: new Date()
+  #             });
+  #           });
+  #         }
+  #       ") %>%
+  #       createPieLayout(
+  #         "Holdings by Fund",
+  #         FONT = list(
+  #           color = '#00fff2',  # Cyan text
+  #           family = "Arial"
+  #         )
+  #       )
+  #   }
+  # })
 
   # Replace plotly_click observer with pie_click observer
   observeEvent(
@@ -214,69 +222,72 @@ app_server <- function(input, output, session) {
   )
 
   # Render tickers pie chart.
-  output$tickersPie <- renderPlotly({
-    disableIpts()
+  # output$tickersPie <- renderPlotly({
+  #   disableIpts()
 
-    # Ensure inputs are re-enabled
-    on.exit({ enableIpts() })
+  #   # Ensure inputs are re-enabled
+  #   on.exit({ enableIpts() })
 
-    h <- selectedHldgVals_tkrs()
+  #   h <- selectedHldgVals_tkrs()
 
-    if(nrow(h) == 0) {
-      # Return empty plot if no data
-      plot_ly() %>%
-        layout(
-          title = "No holdings data available",
-          paper_bgcolor = '#222',
-          plot_bgcolor = '#222',
-          font = list(color = '#eee')
-        )
-    } else {
-      sfs <- selectedFunds_hldgs()
-      fn <- if_else(
-        length(sfs) == 0,
-        'Overall Portfolio',
-        paste(
-          sfs,
-          collapse = " + "
-        )
-      )
+  #   if(nrow(h) == 0) {
+  #     # Return empty plot if no data
+  #     plot_ly() %>%
+  #       layout(
+  #         title = "No holdings data available",
+  #         paper_bgcolor = '#222',
+  #         plot_bgcolor = '#222',
+  #         font = list(color = '#eee')
+  #       )
+  #   } else {
+  #     sfs <- selectedFunds_hldgs()
+  #     fn <- if_else(
+  #       length(sfs) == 0,
+  #       'Overall Portfolio',
+  #       paste(
+  #         sfs,
+  #         collapse = " + "
+  #       )
+  #     )
 
-      h %>%
-        plot_ly(
-          labels = ~name,
-          values = ~val,
-          type = 'pie',
-          hole = 0.6,
-          textinfo = 'label+percent',
-          insidetextorientation = 'radial',
-          marker = list(
-            line = list(
-              color = 'rgba(255, 255, 255, 0.3)',  # White glow effect
-              width = 1
-            ),
-            colors = colorRampPalette(c("#ffffff", "#e6e6ff", "#ccccff", "#b3b3ff"))(nrow(h)) # White to light blue gradient
-          ),
-          hoverinfo = 'label+percent+value',
-          opacity = 0.95,
-          direction = 'clockwise'
-        ) %>%
-        createPieLayout(
-          paste0("Holdings by Ticker (", fn, ")"),
-          list(
-            family = "-apple-system",
-            size = 18,
-            color = "#ffffff"  # White text
-          ),
-          list(color = '#ffffff') # White text for labels
-        )
-    }
-  })
+  #     h %>%
+  #       plot_ly(
+  #         labels = ~name,
+  #         values = ~val,
+  #         type = 'pie',
+  #         hole = 0.6,
+  #         textinfo = 'label+percent',
+  #         insidetextorientation = 'radial',
+  #         marker = list(
+  #           line = list(
+  #             color = 'rgba(255, 255, 255, 0.3)',  # White glow effect
+  #             width = 1
+  #           ),
+  #           colors = colorRampPalette(c("#ffffff", "#e6e6ff", "#ccccff", "#b3b3ff"))(nrow(h)) # White to light blue gradient
+  #         ),
+  #         hoverinfo = 'label+percent+value',
+  #         opacity = 0.95,
+  #         direction = 'clockwise'
+  #       ) %>%
+  #       createPieLayout(
+  #         paste0("Holdings by Ticker (", fn, ")"),
+  #         list(
+  #           family = "-apple-system",
+  #           size = 18,
+  #           color = "#ffffff"  # White text
+  #         ),
+  #         list(color = '#ffffff') # White text for labels
+  #       )
+  #   }
+  # })
 
   ########################################################## Returns
 
   selectedRtns_raw <- reactive({
-    req(input$selected_chart == 'Returns')
+    req(
+      status() == "Rdy",
+      input$selected_chart == 'Returns'
+    )
 
     # we will try to always trigger slider update and use slider update to trigger rebase
     # to avoid double update on the plot
@@ -553,34 +564,4 @@ app_server <- function(input, output, session) {
     { plotlyProxyInvoke(plot_proxy, "relayout", list(showlegend = input$showLegend)) }
     #ignoreNULL = F
   ) 
-
-  ################################################################ Chart Type
-
-  output$mainContent <- renderUI({
-    if (input$selected_chart == "Returns") {
-      plotlyOutput(
-        "rtnsPlot",
-        height = "100vh"
-      )
-    } else {
-      fluidRow(
-        column(
-          6,
-          plotlyOutput(
-            "fundsPie",
-            height = "100vh",
-            width = "100%"
-          )
-        ),
-        column(
-          6,
-          plotlyOutput(
-            "tickersPie",
-            height = "100vh",
-            width = "100%"
-          )
-        )
-      )
-    }
-  })
 }
