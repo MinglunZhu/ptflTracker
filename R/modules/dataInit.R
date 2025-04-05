@@ -47,10 +47,17 @@ dataInitServer <- function(id) {
                 message = 'Initializing Data...',
                 value = 0,
                 {
-                    n_steps <- 3 # Define number of major steps
-                    p <- progressor(steps = n_steps)
-                    #incAmt <- 1 / n_steps
-                
+                    currencies <- trades %>%
+                        distinct(cur) %>%
+                        filter(cur != "USD") %>%
+                        pull(cur)
+
+                    p <- progressor(
+                        # dl + nbr tkrs + dl + nbr fx + dl + nbr bms + done
+                        # multiply by 2 to compensate for the bug where it increases by 2 steps
+                        steps = (1 + length(unique_tickers) + 1 + length(currencies) + 1 + length(NAMES_BMS) + 1) * 2
+                    )
+
                     # Use promises and future for async operation
                     future_promise({
                         # 3. Download daily price data for each ticker from Yahoo Finance.
@@ -78,7 +85,7 @@ dataInitServer <- function(id) {
 
                             colnames(p) <- t
 
-                            prices_xts <-if (is.null(prices_xts)) p
+                            prices_xts <- if (is.null(prices_xts)) p
                             else {
                                 merge(
                                     prices_xts, p,
@@ -86,6 +93,8 @@ dataInitServer <- function(id) {
                                     check.names = F
                                 )
                             }
+
+                            p()
                         }
 
                         prices_xts <- prices_xts %>%
@@ -113,14 +122,9 @@ dataInitServer <- function(id) {
                             )
 
                         #download exchange rates
-                        currencies <- trades %>%
-                            distinct(cur) %>%
-                            filter(cur != "USD") %>%
-                            pull(cur)
-
                         message("Future: Downloading FX rates...")
                         # ... FX download logic ... -> xchgRates_df
- #                       p("Downloading FX Rates...")
+                        p("Downloading FX Rates...")
 
                         # download exchange rates and store in a dataframe in 3 columns date, cur, xchgRate_usd
                         # 3. Create a full grid of all dates and all currencies
@@ -146,6 +150,8 @@ dataInitServer <- function(id) {
                                             mutate(cur = curr)
 
                                         colnames(df)[2] <- "xchgRate_usd"
+
+                                        p()
 
                                         df
                                     }) %>%
@@ -385,7 +391,7 @@ dataInitServer <- function(id) {
                                 summarise(val = sum(val))
                         }
 
-  #                      p("Downloading benchmark index prices...")
+                        p("Downloading benchmark index prices...")
 
                         # Download S&P 500 and Nasdaq 100 index data and calculate cumulative returns
                         for (n in NAMES_BMS) {
@@ -423,6 +429,8 @@ dataInitServer <- function(id) {
                                     cmltvRtn_inclCash = cmltvRtn_xcluCash
                                 )
                             )
+
+                            p()
                         }
 
                         message("Future: Preparing choice lists...")

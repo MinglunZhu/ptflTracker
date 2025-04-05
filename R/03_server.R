@@ -10,7 +10,18 @@ CYBER_COLORS <- c(
 app_server <- function(input, output, session) {
   message("--- app_server function started ---")
 
-  session$onSessionEnded(function() stopApp())
+  session$onSessionEnded(function() {
+    message("--- Session ending, cleaning up ---")
+    stopApp()
+  })
+
+  sprintf("Available cores: %d", parallelly::availableCores(constraints = "cgroups2.cpu.max")) %>% message()
+  
+  # Use 1 worker on shinyapps.io to avoid resource conflicts
+  future::plan(
+      future::multisession,
+      workers = 1
+  )
 
   # --- Configure progressr handler for Shiny ---
   progressr::handler_shiny(session = session) %>% progressr::handlers()

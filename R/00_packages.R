@@ -19,7 +19,7 @@ library(htmlwidgets)
 library(plotly)       
 library(scales)
 
-library(reshape2)
+#library(reshape2)
 
 # not working with shinyapps.io
 # required_packages <- c(

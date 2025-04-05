@@ -335,16 +335,21 @@ which prevents position fixed from working as intended */
 }
 
 .navbar-nav input[type='checkbox']:checked,
-.irs--shiny .irs-bar {
-  background: linear-gradient(90deg,
+.irs--shiny .irs-bar,
+#shiny-notification-panel .progress-bar {
+  background: linear-gradient(
+    90deg,
     rgba(0, 255, 242, 0.3),
-    rgba(0, 180, 255, 0.3));
-
-  border: 1px solid rgba(255, 255, 255, 0.2);
+    rgba(0, 180, 255, 0.3)
+  );
 
   backdrop-filter: var(--medium-blur);
   -webkit-backdrop-filter: var(--medium-blur);
 }
+
+/* progress bar can not have border */
+.navbar-nav input[type='checkbox']:checked,
+.irs--shiny .irs-bar { border: 1px solid rgba(255, 255, 255, 0.2); }
 
 .irs--shiny .irs-handle {
   width: 20px;
@@ -494,3 +499,48 @@ which prevents position fixed from working as intended */
     text-overflow: ellipsis;
 }
 /* end full width flex box dropdown selection input */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* progress bar */
+/* Make sure Shiny progress appears above page spinner */
+#shiny-notification-panel { z-index: 100000001 !important; }
+
+/* Style the progress notification container */
+.shiny-notification {
+  background-color: rgba(34, 34, 34, 0.9) !important;
+  border: 1px solid rgba(0, 255, 242, 0.3) !important;
+  border-radius: 4px;
+
+  backdrop-filter: var(--medium-blur);
+  -webkit-backdrop-filter: var(--medium-blur);
+}
+
+#shiny-notification-panel .progress { background-color: rgba(68, 68, 68, 0.8) !important; }
+
+#shiny-notification-panel .progress-message {
+  color: #00fff2 !important; /* Your cyan color */
+  font-weight: bold;
+}
+
+/* Style the progress details (secondary text) */
+#shiny-notification-panel .progress-detail {
+  color: #aaaaaa !important; /* Light grey for details */
+}
+/* end progress bar */
