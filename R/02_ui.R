@@ -101,7 +101,7 @@ app_ui <- tagList(
                 tags$li(
                   checkboxGroupInput(
                     "selectedFunds_rtns", "Select Funds (Rebased):", 
-                    choices = openFunds_sorted,
+                    choices = character(0),
                     selected = character(0)
                   )
                 )
@@ -113,7 +113,7 @@ app_ui <- tagList(
                 tags$li(
                   selectizeInput(
                     "selectedTkrs_rtns", "Select Tickers (Rebased):", 
-                    choices = openTkrGrps,
+                    choices = NULL,
                     selected = NULL,   # Start with nothing selected
                     multiple = T,   # Allow selecting multiple tickers
                     options = list(

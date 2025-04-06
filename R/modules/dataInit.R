@@ -44,7 +44,7 @@ dataInitServer <- function(id) {
                         filter(cur != "USD") %>%
                         pull(cur)
 
-                    a <- 1 / (1 + length(unique_tickers) + 1 + length(currencies) + 1 + length(NAMES_BMS) + 1) * 2
+                    a <- 1 / (1 + length(unique_tickers) + 1 + length(currencies) + 1 + length(NAMES_BMS) + 1)
 
                     incProg <- function(DETAILS) {
                         if (missing(DETAILS)) {
@@ -71,7 +71,7 @@ dataInitServer <- function(id) {
                         prices_xts <- NULL
 
                         message("Future: Downloading prices...")
-                        prog("Downloading Prices...")
+                        incProg("Downloading Prices...")
 
                         #even passing a vector to getSybmols
                         #it still downloads one by one due to yahoo's API only support 1 stock
@@ -131,7 +131,7 @@ message("converted to long df...")
                         #download exchange rates
                         message("Future: Downloading FX rates...")
                         # ... FX download logic ... -> xchgRates_df
-                        prog("Downloading FX Rates...")
+                        incProg("Downloading FX Rates...")
 
                         # download exchange rates and store in a dataframe in 3 columns date, cur, xchgRate_usd
                         # 3. Create a full grid of all dates and all currencies
@@ -398,7 +398,7 @@ message("converted to long df...")
                                 summarise(val = sum(val))
                         }
 
-                        prog("Downloading benchmark index prices...")
+                        incProg("Downloading benchmark index prices...")
 
                         # Download S&P 500 and Nasdaq 100 index data and calculate cumulative returns
                         for (n in NAMES_BMS) {
@@ -468,7 +468,8 @@ message("converted to long df...")
                             c("Misc.")
 
                         # Order the tickers by annualized returns (descending)
-                        uniqueTkrs_sorted <- rtns_anlzed_df %>%
+                        # needed by util functions
+                        uniqueTkrs_sorted <<- rtns_anlzed_df %>%
                             filter(istmt %in% unique_tickers) %>%
                             arrange(desc(rtn_anlzed)) %>%
                             pull(istmt)

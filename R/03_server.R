@@ -561,6 +561,13 @@ app_server <- function(input, output, session) {
     ignoreInit = T # Prevent running on startup
   )
 
+  # Trigger inclClosed event with its current value
+  # This will run after dataInit completes since we're synchronous
+  updateCheckboxInput(
+    session, "inclClosed", 
+    value = isolate(input$inclClosed)
+  )
+
   observeEvent(
     input$tglAllFunds_btn,
     {
