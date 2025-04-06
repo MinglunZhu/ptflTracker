@@ -19,6 +19,9 @@ library(htmlwidgets)
 library(plotly)       
 library(scales)
 
+# Configure future to be compatible with shinyapps.io
+options(future.rng.onMisuse = "ignore")
+
 #library(reshape2)
 
 # not working with shinyapps.io

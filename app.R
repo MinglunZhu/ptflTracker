@@ -1,5 +1,7 @@
 # Main Application Loader
-options(shiny.sanitize.errors = FALSE)  # Show detailed errors in development
+options(shiny.sanitize.errors = F)  # Show detailed errors in development
+#options(future.debug = TRUE)  # Enable future debugging
+#options(future.wait.interval = 0.5)  # Adjust wait interval for futures
 
 # Load packages FIRST
 source("R/00_packages.R")

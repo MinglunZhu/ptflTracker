@@ -7,6 +7,14 @@ CYBER_COLORS <- c(
 )
 #end consts
 
+options(
+  page.spinner.type = 3,
+  page.spinner.color = "#00fff2", # Your cyan color
+  page.spinner.color.background = 'rgba(50, 50, 50, 0.2)',
+  page.spinner.size = 1.5,
+  page.spinner.background = "#222"
+)
+
 app_server <- function(input, output, session) {
   message("--- app_server function started ---")
 
@@ -15,13 +23,24 @@ app_server <- function(input, output, session) {
     stopApp()
   })
 
-  sprintf("Available cores: %d", parallelly::availableCores(constraints = "cgroups2.cpu.max")) %>% message()
+  # spinner
+  showPageSpinner()
+
+  # sprintf("Available cores: %d", parallelly::availableCores(constraints = "cgroups2.cpu.max")) %>% message()
   
-  # Use 1 worker on shinyapps.io to avoid resource conflicts
-  future::plan(
-      future::multisession,
-      workers = 1
-  )
+  # # Use 1 worker on shinyapps.io to avoid resource conflicts
+  # tryCatch({
+  #   future::plan(
+  #     future::multiprocess,
+  #     workers = 1,
+  #     gc = T,
+  #     earlySignal = T
+  #   )
+
+  #   message("Future plan configured successfully")
+  # }, error = function(e) {
+  #   message("Error configuring future plan: ", e$message)
+  # })
 
   # --- Configure progressr handler for Shiny ---
   progressr::handler_shiny(session = session) %>% progressr::handlers()
@@ -574,5 +593,7 @@ app_server <- function(input, output, session) {
     input$showLegend, 
     { plotlyProxyInvoke(plot_proxy, "relayout", list(showlegend = input$showLegend)) }
     #ignoreNULL = F
-  ) 
+  )
+
+  hidePageSpinner()
 }

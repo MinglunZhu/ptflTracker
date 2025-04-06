@@ -4,3 +4,5 @@
 .Ruserdata
 /.Rproj.user
 .lintr
+deployShinyApps.io.R
+/rsconnect

@@ -1,10 +1,5 @@
-options(
-  page.spinner.type = 3,
-  page.spinner.color = "#00fff2", # Your cyan color
-  page.spinner.color.background = 'rgba(50, 50, 50, 0.2)',
-  page.spinner.size = 1.5,
-  page.spinner.background = "#222"
-)
+#handlers(global = TRUE) # Enable global progress handlers
+handlers("shiny")       # Use the Shiny-specific handler
 
 # Module UI (Minimal - can be expanded later if needed)
 dataInitUI <- function(id) {
@@ -19,9 +14,6 @@ dataInitServer <- function(id) {
     moduleServer(
         id,
         function(input, output, session) {
-            # spinner
-            showPageSpinner()
-
             # --- State and Data Storage ---
             status <- reactiveVal("Initg")
 
@@ -52,19 +44,34 @@ dataInitServer <- function(id) {
                         filter(cur != "USD") %>%
                         pull(cur)
 
-                    p <- progressor(
-                        # dl + nbr tkrs + dl + nbr fx + dl + nbr bms + done
-                        # multiply by 2 to compensate for the bug where it increases by 2 steps
-                        steps = (1 + length(unique_tickers) + 1 + length(currencies) + 1 + length(NAMES_BMS) + 1) * 2
-                    )
+                    a <- 1 / (1 + length(unique_tickers) + 1 + length(currencies) + 1 + length(NAMES_BMS) + 1) * 2
+
+                    incProg <- function(DETAILS) {
+                        if (missing(DETAILS)) {
+                            incProgress(amount = a)
+
+                            return()
+                        }
+
+                        incProgress(
+                            amount = a,
+                            detail = DETAILS
+                        )
+                    }
+
+                    # prog <- progressor(
+                    #     # dl + nbr tkrs + dl + nbr fx + dl + nbr bms + done
+                    #     # multiply by 2 to compensate for the bug where it increases by 2 steps
+                    #     steps = (1 + length(unique_tickers) + 1 + length(currencies) + 1 + length(NAMES_BMS) + 1) * 2
+                    # )
 
                     # Use promises and future for async operation
-                    future_promise({
+#                    future_promise({
                         # 3. Download daily price data for each ticker from Yahoo Finance.
                         prices_xts <- NULL
 
                         message("Future: Downloading prices...")
-                        p("Downloading Prices...")
+                        prog("Downloading Prices...")
 
                         #even passing a vector to getSybmols
                         #it still downloads one by one due to yahoo's API only support 1 stock
@@ -94,7 +101,7 @@ dataInitServer <- function(id) {
                                 )
                             }
 
-                            p()
+                            incProg()
                         }
 
                         prices_xts <- prices_xts %>%
@@ -120,11 +127,11 @@ dataInitServer <- function(id) {
                                 values_to = "price",
                                 values_drop_na = TRUE # Optional: drop rows where price is NA early
                             )
-
+message("converted to long df...")
                         #download exchange rates
                         message("Future: Downloading FX rates...")
                         # ... FX download logic ... -> xchgRates_df
-                        p("Downloading FX Rates...")
+                        prog("Downloading FX Rates...")
 
                         # download exchange rates and store in a dataframe in 3 columns date, cur, xchgRate_usd
                         # 3. Create a full grid of all dates and all currencies
@@ -151,7 +158,7 @@ dataInitServer <- function(id) {
 
                                         colnames(df)[2] <- "xchgRate_usd"
 
-                                        p()
+                                        incProg()
 
                                         df
                                     }) %>%
@@ -391,7 +398,7 @@ dataInitServer <- function(id) {
                                 summarise(val = sum(val))
                         }
 
-                        p("Downloading benchmark index prices...")
+                        prog("Downloading benchmark index prices...")
 
                         # Download S&P 500 and Nasdaq 100 index data and calculate cumulative returns
                         for (n in NAMES_BMS) {
@@ -403,8 +410,8 @@ dataInitServer <- function(id) {
                                 mtXts_mtx %>%
                                     merge(
                                         t %>%
-                                        safeGetSymbols() %>%
-                                        Cl(),
+                                            safeGetSymbols() %>%
+                                            Cl(),
                                         all = T
                                     ) %>%
                                     na.locf() %>%
@@ -430,7 +437,7 @@ dataInitServer <- function(id) {
                                 )
                             )
 
-                            p()
+                            incProg()
                         }
 
                         message("Future: Preparing choice lists...")
@@ -519,23 +526,23 @@ dataInitServer <- function(id) {
 
                         message("Future: Data processing complete.")
                         # --- END: Data Loading & Processing Logic ---
-                    }) %...>% {
-                        message("Data Initialization Module: Data initialization complete (onFulfilled).")
+                    # }) %...>% {
+                    #     message("Data Initialization Module: Data initialization complete (onFulfilled).")
 
-                        status("Rdy")
+                         status("Rdy")
 
-                        hidePageSpinner()
-                    } %...!% (function(error) {
-                        message("Data Initialization Module: Data initialization failed: ", error)
+                    #     
+                    # } %...!% (function(error) {
+                    #     message("Data Initialization Module: Data initialization failed: ", error)
 
-                        status("Err")
+                    #     status("Err")
                         
-                        # Consider showing a modal error here too
-                        modalDialog(
-                            title = "Error Initializing Data", 
-                            paste(error$message)
-                        ) %>% showModal()
-                    })
+                    #     # Consider showing a modal error here too
+                    #     modalDialog(
+                    #         title = "Error Initializing Data", 
+                    #         paste(error$message)
+                    #     ) %>% showModal()
+                    # })
                 }
             ) # End withProgress
 
