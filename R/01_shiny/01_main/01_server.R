@@ -346,9 +346,10 @@ app_server <- function(input, output, session) {
               selected = intersect(input$selectedTkrs_rtns, availableTkrs)
               # server = TRUE # Consider if list becomes extremely large
           )
-      }
-      # init once data is ready
-      # ignoreInit = T # Prevent running on startup
+      },
+      # run once data is inited
+      # because at UI level the data is not ready
+      #ignoreInit = T # Prevent running on startup
   )
 
   observeEvent(

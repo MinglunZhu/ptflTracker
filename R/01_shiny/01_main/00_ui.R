@@ -100,8 +100,8 @@ app_ui <- tagList(
                 tags$li(
                   selectizeInput(
                     "selectedTkrs_rtns", "Select Tickers (Rebased):", 
-                    choices = NULL,
-                    selected = NULL,   # Start with nothing selected
+                    choices = list(),
+                    selected = character(0),   # Start with nothing selected
                     multiple = T,   # Allow selecting multiple tickers
                     options = list(
                       placeholder = 'Type or click to select tickers...',
