@@ -43,11 +43,11 @@ app_server <- function(input, output, session) {
   # })
 
   # --- Configure progressr handler for Shiny ---
-  progressr::handler_shiny(session = session) %>% progressr::handlers()
+  #progressr::handler_shiny(session = session) %>% progressr::handlers()
   # Ensure this runs once per session start within the module server
 
   # --- Call the Data Loader Module ---
-  status <- dataInitServer("dataInit")
+  dataInitServer("dataInit")
   # This returns a list of vars: data$status, data$rtns_df, etc.
 
   # Reactive val for filtering tickers breakdown by a fund click (NULL = overall)
@@ -314,10 +314,7 @@ app_server <- function(input, output, session) {
   ########################################################## Returns
 
   selectedRtns_raw <- reactive({
-    req(
-      status() == "Rdy",
-      input$selected_chart == 'Returns'
-    )
+    req(input$selected_chart == 'Returns')
 
     # we will try to always trigger slider update and use slider update to trigger rebase
     # to avoid double update on the plot

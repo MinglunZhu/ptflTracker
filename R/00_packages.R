@@ -1,8 +1,6 @@
 # Package Dependency Management
 library(tidyverse)
 
-library(future)
-library(promises)
 library(progressr)
 
 library(quantmod)
@@ -20,8 +18,10 @@ library(plotly)
 library(scales)
 
 # Configure future to be compatible with shinyapps.io
-options(future.rng.onMisuse = "ignore")
+#options(future.rng.onMisuse = "ignore")
 
+#library(future)
+#library(promises)
 #library(reshape2)
 
 # not working with shinyapps.io
