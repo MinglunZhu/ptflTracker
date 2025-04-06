@@ -257,12 +257,12 @@ rtnsServer <- function(id, end_date_rv, selectedChart, selectedFunds_rv, selecte
                         ),
                         legend = list(
                             title = list(text = "Order. | Annualized Return (Xclu Cash)%<br> | Instrument"),
-                            font = list(color = '#eee'),
-                            showlegend = showLegend_rv() %>% isolate() %||% T # Set initial state
+                            font = list(color = '#eee')
                             #, x = 1.02, # Position slightly right of plot area
                             #xanchor = 'left' # Anchor legend's left edge to position x
                             #traceorder = "normal"
                         ),
+                        showlegend = showLegend_rv() %>% isolate() %||% T, # Set initial state
                         # Set dark theme colors
                         plot_bgcolor = '#222',
                         paper_bgcolor = '#222',
