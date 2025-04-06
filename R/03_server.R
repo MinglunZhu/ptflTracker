@@ -384,7 +384,11 @@ app_server <- function(input, output, session) {
       }
 
       minDate_rtns_prv <<- min_new
-  })
+    }
+    # no ignore init because when this code is run
+    # selected rtns raw is already done
+    # and we need to init it once as it won't get triggered by selectedRtns_raw as it's already run
+  )
 
   # Reactive: rebase all selected return series to a common base date.
   selectedRtns_rebased <- eventReactive(
@@ -556,16 +560,9 @@ app_server <- function(input, output, session) {
         selected = intersect(input$selectedTkrs_rtns, availableTkrs)
         # server = TRUE # Consider if list becomes extremely large
       )
-    },
-    ignoreNULL = T,
-    ignoreInit = T # Prevent running on startup
-  )
-
-  # Trigger inclClosed event with its current value
-  # This will run after dataInit completes since we're synchronous
-  updateCheckboxInput(
-    session, "inclClosed", 
-    value = isolate(input$inclClosed)
+    }
+    # init once data is ready
+    # ignoreInit = T # Prevent running on startup
   )
 
   observeEvent(
@@ -598,8 +595,8 @@ app_server <- function(input, output, session) {
 
   observeEvent(
     input$showLegend, 
-    { plotlyProxyInvoke(plot_proxy, "relayout", list(showlegend = input$showLegend)) }
-    #ignoreNULL = F
+    { plotlyProxyInvoke(plot_proxy, "relayout", list(showlegend = input$showLegend)) },
+    ignoreInit = T
   )
 
   hidePageSpinner()
