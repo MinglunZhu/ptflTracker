@@ -30,6 +30,19 @@ dataInitServer <- function(id) {
             #     session$sendCustomMessage("trigger-data-init", list(id = session$ns("trigger")))
             # })
             
+            # if weekend, and was updated friday or later
+            ed <- Sys.Date()
+            end_date <- reactiveVal(ed)
+
+            if (
+                weekdays(ed) %in% c("Saturday", "Sunday")
+                && exists("last_initDate", envir = .GlobalEnv)
+                && last_initDate >= ed - ((format(ed, "%u") %>% as.integer() - 5) %% 7)
+            ) {
+                paste("Data Initialization Module: Skipping data initialization on weekend. Last initialization date:", last_initDate) %>% message()
+                return(end_date)
+            }
+
             message("Data Initialization Module: Session started, beginning data initialization...")
 
             # Wrap future chain in withProgress
@@ -37,25 +50,18 @@ dataInitServer <- function(id) {
                 message = 'Initializing Data...',
                 value = 0,
                 {
-                    currencies <- trades %>%
-                        distinct(cur) %>%
-                        filter(cur != "USD") %>%
-                        pull(cur)
+                    all_dates <- seq(
+                        start_date, ed,
+                        by = "days"
+                    )
 
-                    a <- 1 / (1 + length(unique_tickers) + 1 + length(currencies) + 1 + length(NAMES_BMS) + 1)
-
-                    incProg <- function(DETAILS) {
-                        if (missing(DETAILS)) {
-                            incProgress(amount = a)
-
-                            return()
-                        }
-
-                        incProgress(
-                            amount = a,
-                            detail = DETAILS
-                        )
-                    }
+                    dayCnt <- length(all_dates)
+                    #Using empty xts to hold downloaded prices for all dates, then convert to dataframe is more perfomrance friendly
+                    mtXts_mtx <- matrix(
+                        nrow = dayCnt,
+                        ncol = 0
+                    ) %>% xts(all_dates)
+                    zeroXts_vctr <- rep(0, dayCnt) %>% xts(order.by = all_dates)
 
                     # 3. Download daily price data for each ticker from Yahoo Finance.
                     prices_xts <- NULL
@@ -75,7 +81,7 @@ dataInitServer <- function(id) {
                         # and close price in yahoo is split adjusted
                         # adjusted price in yahoo is both split and dividend adjusted
                         p <- t %>%
-                            safeGetSymbols() %>%
+                            safeGetSymbols(ed) %>%
                             Cl()
 
                         if (unique(trades$cur[trades$yahoo_tkr == t]) == 'ZAR') p <- p / 100
@@ -136,7 +142,7 @@ dataInitServer <- function(id) {
                                     cat("Downloading", curr, "/USD FX data\n")
 
                                     rates <- paste0(curr, "USD=X") %>%
-                                        safeGetSymbols() %>%
+                                        safeGetSymbols(ed) %>%
                                         Cl()
 
                                     # Convert xts to dataframe
@@ -175,7 +181,7 @@ dataInitServer <- function(id) {
                     message("Future: Processing trades...")
 
                     # Create a new column for adjusted unit count (default to raw unitCnt)
-                    trades <<- trades %>%
+                    trades_inited_df <<- trades %>%
                         left_join(
                             xchgRates_df,
                             by = c("date", "cur")
@@ -228,9 +234,7 @@ dataInitServer <- function(id) {
                     # Convert non-USD prices to USD using the appropriate FX rate.
                     prices_daily_df <- prices_daily_df %>%
                         left_join(
-                            trades %>%
-                                select(yahoo_tkr, cur) %>%
-                                distinct(),
+                            trades %>% distinct(yahoo_tkr, cur),
                             by = c("tkr" = "yahoo_tkr")
                         ) %>%
                         left_join(
@@ -239,23 +243,11 @@ dataInitServer <- function(id) {
                         ) %>%
                         mutate(price_usd = price * xchgRate_usd)
 
-                    # Analyze trades.csv for maximum decimal places
-                    # Remove any extraneous whitespace, then count the characters after the decimal point if present.
-                    maxDecimals <- trades$unitCnt %>%
-                        as.character() %>%
-                        strsplit("\\.") %>%
-                        sapply(function(ps) {
-                            if (length(ps) == 1) return(0)
-
-                            nchar(ps[2])
-                        }) %>%
-                        max(na.rm = T)
-
                     message("Future: Calculating values...")
 
                     # 1. Create a complete grid of all dates and tickers in the subset
                     vals_df <- expand_grid(
-                        fund = unique(trades$fund),
+                        fund = uniqueFunds,
                         date = all_dates,
                         # Get unique tickers from the input trades
                         tkr = unique_tickers
@@ -263,7 +255,7 @@ dataInitServer <- function(id) {
                         # 3. Join trades onto the grid and calculate cumulative holdings
                         left_join(
                             # 2. Prepare trades data: select relevant columns and sum units for same day/ticker
-                            trades %>%
+                            trades_inited_df %>%
                                 group_by(fund, date, yahoo_tkr) %>%
                                 summarise(
                                     adj_unitCnt = sum(
@@ -400,7 +392,7 @@ dataInitServer <- function(id) {
                             mtXts_mtx %>%
                                 merge(
                                     t %>%
-                                        safeGetSymbols() %>%
+                                        safeGetSymbols(ed) %>%
                                         Cl(),
                                     all = T
                                 ) %>%
@@ -489,7 +481,7 @@ dataInitServer <- function(id) {
 
                     # Get latest holdings for each fund/ticker combination
                     latest_hldgs <- vals_df %>%
-                        filter(date == END_DATE) %>% # Filter for the last calculated date
+                        filter(date == ed) %>% # Filter for the last calculated date
                         select(fund, tkr, cmltvUnitCnt)
 
                     # Identify open funds (positive holding for the fund itself, excluding individual tickers)
@@ -515,10 +507,13 @@ dataInitServer <- function(id) {
                         filter(cmltvUnitCnt > 0) %>%
                         getTkrGrps(tkr)
 
+                    last_initDate <<- cd
                     message("Future: Data processing complete.")
                     # --- END: Data Loading & Processing Logic ---
                 }
             ) # End withProgress
+
+            end_date
         }
     ) # End moduleServer
 }

@@ -8,8 +8,6 @@ BENCH_MARKS <- list(
 )
 
 NAMES_BMS <- names(BENCH_MARKS)
-
-END_DATE <- Sys.Date()
 #end consts
 
 # 1. Read in the trades CSV file
@@ -72,18 +70,40 @@ trades <- trades %>%
     )
   )
 
+runDate <- Sys.Date()
 # Define the date range based on your trades.
 start_date <- min(trades$date)
 unique_tickers <- unique(trades$yahoo_tkr)
 uniqueFunds <- unique(trades$fund)
-all_dates <- seq(
-  start_date, END_DATE,
-  by = "days"
-)
-dayCnt <- length(all_dates)
-#Using empty xts to hold downloaded prices for all dates, then convert to dataframe is more perfomrance friendly
-mtXts_mtx <- matrix(
-  nrow = dayCnt,
-  ncol = 0
-) %>% xts(all_dates)
-zeroXts_vctr <- rep(0, dayCnt) %>% xts(order.by = all_dates)
+
+currencies <- trades %>%
+  distinct(cur) %>%
+  filter(cur != "USD") %>%
+  pull(cur)
+
+a <- 1 / (1 + length(unique_tickers) + 1 + length(currencies) + 1 + length(NAMES_BMS) + 1)
+
+incProg <- function(DETAILS) {
+    if (missing(DETAILS)) {
+        incProgress(amount = a)
+
+        return()
+    }
+
+    incProgress(
+        amount = a,
+        detail = DETAILS
+    )
+}
+
+# Analyze trades.csv for maximum decimal places
+# Remove any extraneous whitespace, then count the characters after the decimal point if present.
+maxDecimals <- trades$unitCnt %>%
+  as.character() %>%
+  strsplit("\\.") %>%
+  sapply(function(ps) {
+      if (length(ps) == 1) return(0)
+
+      nchar(ps[2])
+  }) %>%
+  max(na.rm = T)

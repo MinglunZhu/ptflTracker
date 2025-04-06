@@ -1,193 +1,282 @@
 # UI Function for the Returns Chart Module
-returnsChartUI <- function(id, start_date, END_DATE) {
-  ns <- NS(id) # Namespace function
-  
-  tagList(
-    # Slider specific to the returns chart
-    sliderInput(
-      ns("selectedDate_rtns"), # Namespaced ID
-      "Select Rebase Date:",
-      min = start_date,
-      max = END_DATE,
-      value = start_date,
-      timeFormat = "%Y-%m-%d", 
-      width = "100%",
-      animate = animationOptions(interval = 1500, loop = TRUE)
-    ),
-    # Plot output
-    plotlyOutput(ns("rtnsPlot"), height = "calc(100vh - 100px)") # Adjust height if needed
-  )
+rtnsUI_sldr <- function(id) {
+    ns <- NS(id) # Namespace function
+
+    tags$li(
+        sliderInput(
+            ns("selectedDate"), "Select Rebase Date:",
+            min = start_date,
+            max = runDate,
+            value = start_date,
+            timeFormat = "%Y-%m-%d", 
+            width = "100%",
+            animate = animationOptions(
+                interval = 1500,   # milliseconds between frames
+                loop = T      # continue playing in a loop
+            )
+        ) # end sliderInput
+    )
+}
+
+rtnsUI_plot <- function(id) {
+    ns <- NS(id) # Namespace function
+    
+    plotlyOutput(
+        ns("plot"),
+        height = "100vh"
+    )
 }
 
 # Server Function for the Returns Chart Module
-returnsChartServer <- function(id, data_status, rtns_data, 
-                               selected_funds, selected_tickers, inclCash, show_legend,
-                               odr, NAMES_BMS, start_date, END_DATE) {
-                                 
-  moduleServer(id, function(input, output, session) {
-    
-    # --- Reactives moved from main server ---
-    
-    selectedRtns_raw <- reactive({
-      req(data_status() == "Ready") # Wait for data
-      current_rtns_df <- rtns_data()
-      req(current_rtns_df)
-      
-      # Use reactive arguments passed to module
-      selected_instruments <- c('Overall Portfolio', NAMES_BMS, selected_funds(), selected_tickers())
-      
-      current_rtns_df %>%
-        filter(istmt %in% selected_instruments) %>%
-        mutate(
-          rtn = if (inclCash()) cmltvRtn_inclCash else cmltvRtn_xcluCash
-        ) %>%
-        # Keep original istmt for matching, add legend version later
-        select(istmt, istmt_legend, type, date, rtn) 
-    })
+rtnsServer <- function(id, end_date_rv, selectedChart, selectedFunds_rv, selectedTkrs_rv, inclCash_rv, showLegend_rv, ipts_disable, ipts_enable) {
+    moduleServer(
+        id, 
+        function(input, output, session) {
+            ns <- session$ns
 
-    reactive_cmmBaseDate <- reactive({
-      df_raw <- selectedRtns_raw()
-      req(df_raw) 
+            # Observe changes to end_date_rv and update the slider max
+            observeEvent(
+                end_date_rv(), 
+                {
+                    message("Updating slider max to: ", end_date_rv())
+                    updateSliderInput(
+                        session, "selectedDate",
+                        max = end_date_rv()
+                    )
+                }
+            )
 
-      valid_series <- df_raw %>% filter(!is.na(rtn) & rtn != 0)
-      
-      calculated_base_date <- if(nrow(valid_series) == 0) {
-                                start_date 
-                              } else {
-                                valid_series %>%
-                                  group_by(istmt) %>% # Group by original istmt
-                                  summarise(startDate = min(date, na.rm = TRUE), .groups = 'drop') %>%
-                                  pull(startDate) %>%
-                                  max(na.rm = TRUE) 
-                              }
+            selectedRtns_raw <- reactive({
+                req(selectedChart == 'Returns')
 
-      if (!is.finite(calculated_base_date)) {
-        calculated_base_date <- start_date 
-      }
-      
-      # Optional adjustment (e.g., -1 day) - ensure consistency
-      # calculated_base_date <- max(calculated_base_date - 1, start_date) 
+                # we will try to always trigger slider update and use slider update to trigger rebase
+                # to avoid double update on the plot
+                rtns_df %>%
+                    filter( istmt %in% c('Overall Portfolio', NAMES_BMS, selectedFunds_rv(), selectedTkrs_rv()) ) %>%
+                    select(istmt, istmt_legend, type, date, cmltvRtn_inclCash, cmltvRtn_xcluCash)
+            })
 
-      return(calculated_base_date)
-    })
+            selectedRtns_cashAdjed <- reactive({
+                selectedRtns_raw() %>%
+                    mutate(
+                        rtn = if (inclCash_rv()) cmltvRtn_inclCash
+                        else cmltvRtn_xcluCash
+                    ) %>%
+                    select(-c(cmltvRtn_inclCash, cmltvRtn_xcluCash))
+            })
 
-    # Use standard variable for previous min state within the module instance
-    minDate_rtns_prv <- start_date 
+            # normal variable as no reaction is needed
+            # if using reactive val, it would trigger the related funciton again
+            # when it's val is updated by the function
+            minDate_rtns_prv <- start_date
+            needUd_rtns <- reactiveVal(NULL)
 
-    observe({
-      # This observer reacts to changes in the calculated base date
-      new_min <- reactive_cmmBaseDate() 
-      
-      if (!is.null(new_min) && inherits(new_min, "Date") && is.finite(new_min)) {
-         old_min <- minDate_rtns_prv # Read standard variable
-         
-         if (!identical(new_min, old_min)) { 
-             current_value <- isolate(input$selectedDate_rtns) # Read namespaced input
-             if (!inherits(old_min, "Date") || !is.finite(old_min)) { old_min <- start_date } 
-             if (!inherits(current_value, "Date") || !is.finite(current_value)) { current_value <- new_min } 
+            observeEvent(
+                #list(selectedRtns_cashAdjed(), needUd_minDate()),
+                selectedRtns_cashAdjed(),
+                {
+                    # if slider not inited, stop
+                    #req(crt)
 
-             if (new_min < current_value) {
-               new_value <- if (current_value == old_min) new_min else current_value
-             } else {
-               new_value <- new_min
-             }
-             new_value <- min(max(new_value, new_min, na.rm = TRUE), END_DATE, na.rm = TRUE)
+                    # --- Update the NEW returns slider ---
+                    min_new <- selectedRtns_cashAdjed() %>%
+                        group_by(istmt) %>%
+                        filter(rtn != 0) %>%
+                        summarise(
+                            startDate = min(
+                                date,
+                                na.rm = T
+                            )
+                        ) %>%
+                        pull(startDate) %>%
+                        max() - 1
 
-             updateSliderInput(session, "selectedDate_rtns", # Use namespaced ID
-                               min = new_min,    
-                               value = new_value)  
-                            
-             minDate_rtns_prv <<- new_min # Update standard variable in module scope
-         }
-      } 
-    }) 
+                    # can not dynamically change animation options
 
-    selectedRtns_rebased <- reactive({
-      df_raw <- selectedRtns_raw() 
-      cbd <- reactive_cmmBaseDate() 
-      req(df_raw, cbd) 
+                    # force date update to trigger rebase
+                    # because rebase no longer triggered by df update
+                    if (min_new == minDate_rtns_prv) {
+                        Sys.time() %>% needUd_rtns()
+                        return()
+                    }
 
-      if (cbd > start_date) { 
-        df_rebased <- df_raw %>%
-          filter(date >= cbd) %>% 
-          group_by(istmt) %>% # Group by original istmt
-          mutate(
-            baseVal = rtn[date == cbd][1], 
-            baseVal = if_else(is.na(baseVal), 0, baseVal),
-            rtn_rebased = if_else(is.na(rtn), NA_real_, (1 + rtn) / (1 + baseVal) - 1)
-          ) %>%
-          ungroup() %>%
-          select(istmt, istmt_legend, type, date, rtn = rtn_rebased) # Keep legend column
-      } else {
-        df_rebased <- df_raw %>% select(istmt, istmt_legend, type, date, rtn) 
-      }
-      
-      # Apply prefixing using the legend column
-      # Ensure odr is passed correctly or recalculated if needed
-      df_final <- df_rebased %>% 
-          mutate(
-            # Use the pre-calculated legend column for plotting/coloring
-            istmt_plot = istmt_legend 
-          ) 
+                    updateSliderInput(
+                        session, "selectedDate", # Target the correct slider
+                        min = min_new                 # Set the new minimum
+                    )
 
-      return(df_final) 
-    })
+                    crt <- input$selectedDate
 
-    # --- Plot Rendering moved here ---
-    output$rtnsPlot <- renderPlotly({
-      req(data_status() == "Ready") # Ensure data is loaded globally
-      
-      df_rebased <- selectedRtns_rebased() 
-      cmmBaseDate <- reactive_cmmBaseDate()
-      current_slider_val <- input$selectedDate_rtns # Read namespaced input
+                    if (min_new <= crt) {
+                        # if crt = old min, at default position
+                        # and new min < old min, if new min is > old min, then the selection would automatically be pushed up
+                        if (
+                            crt == minDate_rtns_prv
+                            & min_new < crt
+                        ) {
+                            updateSliderInput(
+                                session, "selectedDate", # Target the correct slider
+                                value = min_new               # Set the calculated value
+                            )
+                        } else Sys.time() %>% needUd_rtns()
+                    }
 
-      validate(
-        need(df_rebased, message = FALSE), need(cmmBaseDate, message = FALSE), need(current_slider_val, message = FALSE),
-        need(inherits(cmmBaseDate, "Date") && is.finite(cmmBaseDate), message = FALSE),
-        need(inherits(current_slider_val, "Date") && is.finite(current_slider_val), message = FALSE),
-        need(current_slider_val >= cmmBaseDate, message = "Waiting for slider update...") 
-      )
-          
-      df_to_plot <- df_rebased %>% filter(date >= current_slider_val)
-      
-      validate(need(nrow(df_to_plot) > 0, "No data available for selected period.")) 
+                    minDate_rtns_prv <<- min_new
+                }
+                # no ignore init because when this code is run
+                # selected rtns raw is already done
+                # and we need to init it once as it won't get triggered by selectedRtns_raw as it's already run
+            )
 
-      # --- Color Generation ---
-      instruments_in_plot <- unique(df_to_plot$istmt_plot) %>% sort() 
-      num_instruments <- length(instruments_in_plot)
-      plot_colors <- scales::hue_pal(l = 75)(num_instruments) 
-      color_map <- setNames(plot_colors, instruments_in_plot)
+            # Reactive: rebase all selected return series to a common base date.
+            selectedRtns_rebased <- eventReactive(
+                list(needUd_rtns(), input$selectedDate),
+                {
+                    # change in data frame does not trigger re-run
+                    # only changes in date can trigger re-run
+                    # and they we try to force change in date every time.
+                    df <- selectedRtns_cashAdjed()
 
-      # --- Plotting ---
-      df_to_plot %>% 
-        plot_ly(
-          x = ~date, y = ~rtn,
-          color = ~istmt_plot, # Use the prefixed legend column
-          colors = color_map, 
-          linetype = ~type,  
-          text = ~paste0("<b>", istmt, "</b>"), # Show original name on hover
-          hoverinfo = 'x+y+text', 
-          type = 'scatter', mode = 'lines'        
-        ) %>% 
-        layout( 
-           title = "Cumulative Daily USD Returns",
-           xaxis = list(title = "Date", gridcolor = '#444', color = '#eee', range = c(current_slider_val, END_DATE)), # Set range dynamically
-           yaxis = list(title = "Cumulative Return", tickformat = ".2%", gridcolor = '#444', color = '#eee'), # Keep autoscale Y
-           legend = list(
-             title = list(text = "Order. | Ann. Rtn% | Instrument"), # Update title
-             font = list(color = '#eee'),
-             showlegend = show_legend() # Use reactive value passed in
-           ),
-           plot_bgcolor = '#222', paper_bgcolor = '#222', font = list(color = '#eee')
-        )
-    }) # End renderPlotly
+                    #common base date
+                    cbd <- input$selectedDate
 
-    # --- Proxy and Legend Toggle Observer moved here ---
-    plot_proxy <- plotlyProxy(session$ns("rtnsPlot"), session)
+                    if (cbd <= start_date) return(df)
 
-    observeEvent(show_legend(), { # Observe the reactive value passed in
-      plotlyProxyInvoke(plot_proxy, "relayout", list(showlegend = show_legend()))
-    }, ignoreNULL = FALSE) 
-    
-  }) # End moduleServer
+                    df %>%
+                        #rtn before rebased date will be negative and meaningless
+                        # we still plot them, but won't be shown by default
+                        #filter(date >= cbd) %>%
+                        group_by(istmt_legend) %>%
+                        mutate(
+                            baseVal = rtn[date == cbd],
+                            rtn = (rtn + 1) / (baseVal + 1) - 1
+                        ) %>%
+                        select(-baseVal)
+                }
+            )
+
+            output$plot <- renderPlotly({
+                ipts_disable()
+
+                # Ensure inputs are re-enabled
+                on.exit({ ipts_enable() })
+
+                df <- selectedRtns_rebased()
+
+                # Check if no series available
+                if (nrow(df) == 0) {
+                    plotly_empty() %>%
+                        layout(
+                            title = "No return data available for selected instruments/period",
+                            plot_bgcolor = '#222',
+                            paper_bgcolor = '#222',
+                            font = list(color = '#eee')
+                        ) %>%
+                        return()
+                }
+
+                range_x <- NULL
+                range_y <- NULL # Default to NULL (autoscale)
+                x_sd <- isolate(input$selectedDate)
+
+                # only need custom x & y range if there is rebase
+                if (x_sd > start_date) {
+                    # it does matter if we isolate because end date would only be set
+                    # at initialization.
+                    x_ed <- end_date_rv()
+
+                    range_x <- c(x_sd, x_ed)
+
+                    xRange_df <- df %>%
+                        filter(
+                            date >= x_sd
+                            & date <= x_ed
+                        )
+
+                    if (nrow(xRange_df) > 0) {
+                        min_y <- min(
+                            xRange_df$rtn,
+                            na.rm = T
+                        )
+                        max_y <- max(
+                            xRange_df$rtn,
+                            na.rm = T
+                        )
+
+                        # Check if min/max are valid numbers
+                        if (is.finite(min_y) && is.finite(max_y)) {
+                            # Calculate padding (e.g., 5% of the range)
+                            # Handle case where min_y == max_y
+                            padding <- if (max_y == min_y) abs(max_y * 0.05) + 0.01 # Add a small absolute padding if range is zero
+                            else 0
+
+                            # Calculate final yaxis range
+                            range_y <- c(min_y - padding, max_y + padding)
+                        }
+                    }
+                # If yaxis_range is still NULL (e.g., no valid data in view), plotly will autoscale Y
+                }
+
+                df %>%
+                    plot_ly(
+                        x = ~date,
+                        y = ~rtn,
+                        color = ~istmt_legend,
+                        linetype = ~type,
+                        #legendrank = ~rank,
+                        text = ~paste0("<b>", istmt, "</b>"), # Bold name
+                        #name = ~istmt_nbred,
+                        hoverinfo = 'x+y+text', # Display x, y, and the content of 'text'
+
+                        type = 'scatter',
+                        mode = 'lines',
+
+                        colors = hue_pal(
+                            l = 75
+                            # c = 100 # Chroma (saturation). Default is 100. Can adjust if needed.
+                        )(
+                            df$istmt_legend %>%
+                                unique() %>%
+                                length()
+                        )
+                    ) %>%
+                    layout(
+                        title = "Cumulative Daily USD Returns",
+                        xaxis = list(
+                            title = "Date",
+                            gridcolor = '#444',
+                            color = '#eee',
+                            range = range_x
+                        ),
+                        yaxis = list(
+                            title = "Cumulative Return",
+                            tickformat = ".2%",
+                            gridcolor = '#444',
+                            color = '#eee',
+                            range = range_y # Apply the calculated default Y range
+                        ),
+                        legend = list(
+                            title = list(text = "Order. | Annualized Return (Xclu Cash)%<br> | Instrument"),
+                            font = list(color = '#eee'),
+                            showlegend = isolate(showLegend_rv() %||% T) # Set initial state
+                            #, x = 1.02, # Position slightly right of plot area
+                            #xanchor = 'left' # Anchor legend's left edge to position x
+                            #traceorder = "normal"
+                        ),
+                        # Set dark theme colors
+                        plot_bgcolor = '#222',
+                        paper_bgcolor = '#222',
+                        font = list(color = '#eee')
+                    )
+            })
+
+            plot_proxy <- plotlyProxy("plot", session)
+
+            observeEvent(
+                showLegend_rv(), 
+                { plotlyProxyInvoke( plot_proxy, "relayout", list(showlegend = showLegend_rv()) ) },
+                ignoreInit = T
+            )
+        }
+    ) # End moduleServer
 }

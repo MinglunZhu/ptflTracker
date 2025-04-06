@@ -59,20 +59,7 @@ app_ui <- tagList(
             # Date Sliders
             conditionalPanel(
               condition = "input.selected_chart == 'Returns'",
-              tags$li(
-                sliderInput(
-                  "selectedDate_rtns", "Select Rebase Date:",
-                  min = start_date,
-                  max = END_DATE,
-                  value = start_date,
-                  timeFormat = "%Y-%m-%d", 
-                  width = "100%",
-                  animate = animationOptions(
-                    interval = 1500,   # milliseconds between frames
-                    loop = T      # continue playing in a loop
-                  )
-                ) # end sliderInput
-              )
+              rtnsUI_sldr("rtns")
             ), # end conditionalPanel
             conditionalPanel(
               condition = "input.selected_chart == 'Holdings'",
@@ -80,8 +67,8 @@ app_ui <- tagList(
                 sliderInput(
                   "selectedDate_hldgs", "Select Date:",
                   min = start_date,
-                  max = END_DATE,
-                  value = END_DATE,
+                  max = runDate,
+                  value = runDate,
                   timeFormat = "%Y-%m-%d", 
                   width = "100%",
                   animate = animationOptions(
@@ -169,10 +156,7 @@ app_ui <- tagList(
       conditionalPanel(
         condition = "input.selected_chart == 'Returns'",
         shinycssloaders::withSpinner(
-          plotlyOutput(
-            "rtnsPlot",
-            height = "100vh"
-          )
+          rtnsUI_plot("rtns")
         )
       ),
       conditionalPanel(

@@ -78,7 +78,7 @@ reformatTkr <- function(t) {
 ################################################################## End stkVal
 
 # Add a function to safely download symbols with retries:
-safeGetSymbols <- function(TKR, MAX_ATTEMPTS = 3, DELAY = 15) {
+safeGetSymbols <- function(TKR, END_DATE = runDate, MAX_ATTEMPTS = 3, DELAY = 15) {
   attempt <- 1
   fp <- paste0(RCDS_DIR, TKR, '.csv')
 
@@ -138,7 +138,7 @@ summariseValCfBy <- function(DF, ...) {
       )
     ) %>%
     left_join(
-      trades %>%
+      trades_inited_df %>%
         group_by(!!!syms(group_cols)) %>%
         summarise(cf = sum(amt_usd)),
       by = group_cols
