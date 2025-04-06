@@ -258,7 +258,7 @@ rtnsServer <- function(id, end_date_rv, selectedChart, selectedFunds_rv, selecte
                         legend = list(
                             title = list(text = "Order. | Annualized Return (Xclu Cash)%<br> | Instrument"),
                             font = list(color = '#eee'),
-                            showlegend = isolate(showLegend_rv() %||% T) # Set initial state
+                            showlegend = showLegend_rv() %>% isolate() %||% T # Set initial state
                             #, x = 1.02, # Position slightly right of plot area
                             #xanchor = 'left' # Anchor legend's left edge to position x
                             #traceorder = "normal"

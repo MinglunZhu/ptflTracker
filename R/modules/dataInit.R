@@ -31,13 +31,13 @@ dataInitServer <- function(id) {
             # })
             
             # if weekend, and was updated friday or later
-            ed <- Sys.Date()
-            end_date <- reactiveVal(ed)
+            cd <- Sys.Date()
+            end_date <- reactiveVal(cd)
 
             if (
-                weekdays(ed) %in% c("Saturday", "Sunday")
+                weekdays(cd) %in% c("Saturday", "Sunday")
                 && exists("last_initDate", envir = .GlobalEnv)
-                && last_initDate >= ed - ((format(ed, "%u") %>% as.integer() - 5) %% 7)
+                && last_initDate >= cd - ((format(cd, "%u") %>% as.integer() - 5) %% 7)
             ) {
                 paste("Data Initialization Module: Skipping data initialization on weekend. Last initialization date:", last_initDate) %>% message()
                 return(end_date)
@@ -51,7 +51,7 @@ dataInitServer <- function(id) {
                 value = 0,
                 {
                     all_dates <- seq(
-                        start_date, ed,
+                        start_date, cd,
                         by = "days"
                     )
 
@@ -81,7 +81,7 @@ dataInitServer <- function(id) {
                         # and close price in yahoo is split adjusted
                         # adjusted price in yahoo is both split and dividend adjusted
                         p <- t %>%
-                            safeGetSymbols(ed) %>%
+                            safeGetSymbols(cd) %>%
                             Cl()
 
                         if (unique(trades$cur[trades$yahoo_tkr == t]) == 'ZAR') p <- p / 100
@@ -142,7 +142,7 @@ dataInitServer <- function(id) {
                                     cat("Downloading", curr, "/USD FX data\n")
 
                                     rates <- paste0(curr, "USD=X") %>%
-                                        safeGetSymbols(ed) %>%
+                                        safeGetSymbols(cd) %>%
                                         Cl()
 
                                     # Convert xts to dataframe
@@ -392,7 +392,7 @@ dataInitServer <- function(id) {
                             mtXts_mtx %>%
                                 merge(
                                     t %>%
-                                        safeGetSymbols(ed) %>%
+                                        safeGetSymbols(cd) %>%
                                         Cl(),
                                     all = T
                                 ) %>%
@@ -481,7 +481,7 @@ dataInitServer <- function(id) {
 
                     # Get latest holdings for each fund/ticker combination
                     latest_hldgs <- vals_df %>%
-                        filter(date == ed) %>% # Filter for the last calculated date
+                        filter(date == cd) %>% # Filter for the last calculated date
                         select(fund, tkr, cmltvUnitCnt)
 
                     # Identify open funds (positive holding for the fund itself, excluding individual tickers)
