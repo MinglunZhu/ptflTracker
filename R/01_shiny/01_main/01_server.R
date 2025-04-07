@@ -46,6 +46,19 @@ app_server <- function(input, output, session) {
   #progressr::handler_shiny(session = session) %>% progressr::handlers()
   # Ensure this runs once per session start within the module server
 
+  # Update showLegend based on orientation when app starts
+  # need this before data init as it runs once on window load
+  observeEvent(
+    input$showLegend_orientation, 
+    { 
+      print('Check orientation')
+      updateCheckboxInput(
+        session, "showLegend", 
+        value = input$showLegend_orientation
+      ) 
+    }
+  )
+
   # --- Call the Data Loader Module ---
   end_date_rv <- dataInitServer("dataInit")
   # This returns a list of vars: data$status, data$rtns_df, etc.
@@ -376,12 +389,6 @@ app_server <- function(input, output, session) {
               else character(0)
           )
       }
-  )
-
-  # Update showLegend based on orientation when app starts
-  observeEvent(
-    input$showLegend_orientation, 
-    { updateCheckboxInput(session, "showLegend", value = input$showLegend_orientation) }
   )
 
   hidePageSpinner()
