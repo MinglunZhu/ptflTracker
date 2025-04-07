@@ -48,11 +48,14 @@ $(document).ready(function() {
         checkDeactivateHeader();
     });
 
-    // Set initial value based on orientation
-    updateLegendByOrientation();
-});
+    // Initialize after Shiny is ready
+    $(document).on('shiny:connected', function() {
+        console.log('Shiny is connected, checking orientation');
+        // Update value when orientation changes
+        window.addEventListener('orientationchange', updateLegendByOrientation);
+        // Also handle resize for browsers/devices that don't support orientationchange
+        window.addEventListener('resize', updateLegendByOrientation);
 
-// Update value when orientation changes
-window.addEventListener('orientationchange', updateLegendByOrientation);
-// Also handle resize for browsers/devices that don't support orientationchange
-window.addEventListener('resize', updateLegendByOrientation);
+        updateLegendByOrientation();
+    });
+});
