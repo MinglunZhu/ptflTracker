@@ -1,3 +1,9 @@
+// Function to check orientation and set showLegend value
+function updateLegendByOrientation() {
+    // isLandscape will be true if width > height
+    Shiny.setInputValue('showLegend_orientation', window.innerWidth > window.innerHeight);
+}
+
 $(document).ready(function() {
     const   HDR = $('.main-header'), // Target the header
             TGL_BTN = $('#header-toggle-btn'); // Target the button
@@ -41,4 +47,12 @@ $(document).ready(function() {
         // Check conditions when a dropdown closes
         checkDeactivateHeader();
     });
-}); 
+
+    // Set initial value based on orientation
+    updateLegendByOrientation();
+});
+
+// Update value when orientation changes
+window.addEventListener('orientationchange', updateLegendByOrientation);
+// Also handle resize for browsers/devices that don't support orientationchange
+window.addEventListener('resize', updateLegendByOrientation);

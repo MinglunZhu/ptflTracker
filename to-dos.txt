@@ -1,0 +1,6 @@
+orientation based show legend
+Data init fail error notification
+Cancel plot when input change
+link shps
+check double plotting on init
+surburst chart

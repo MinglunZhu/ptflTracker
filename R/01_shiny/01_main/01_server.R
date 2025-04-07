@@ -378,5 +378,11 @@ app_server <- function(input, output, session) {
       }
   )
 
+  # Update showLegend based on orientation when app starts
+  observeEvent(
+    input$showLegend_orientation, 
+    { updateCheckboxInput(session, "showLegend", value = input$showLegend_orientation) }
+  )
+
   hidePageSpinner()
 }
