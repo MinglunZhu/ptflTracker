@@ -50,6 +50,22 @@ app_server <- function(input, output, session) {
   end_date_rv <- dataInitServer("dataInit")
   # This returns a list of vars: data$status, data$rtns_df, etc.
 
+  # init settings after data init, but before plotting
+  # Update showLegend based on orientation when app starts
+  observeEvent(
+    input$showLegend_orientation, 
+    { 
+      print(input$showLegend_orientation) # Debugging purposes only, remove later
+      updateCheckboxInput(
+        session, "showLegend", 
+        value = input$showLegend_orientation
+      ) 
+    }
+  )
+
+  # Trigger initial orientation check after everything is set up
+  session$sendCustomMessage("check-orientation", list())
+
   rtnsServer(
     'rtns', end_date_rv, input$selected_chart, reactive(input$selectedFunds_rtns), reactive(input$selectedTkrs_rtns), reactive(input$inclCash), 
     reactive(input$showLegend), disableIpts, enableIpts
@@ -377,21 +393,6 @@ app_server <- function(input, output, session) {
           )
       }
   )
-
-  # Update showLegend based on orientation when app starts
-  observeEvent(
-    input$showLegend_orientation, 
-    { 
-      print(input$showLegend_orientation) # Debugging purposes only, remove later
-      updateCheckboxInput(
-        session, "showLegend", 
-        value = input$showLegend_orientation
-      ) 
-    }
-  )
-
-  # Trigger initial orientation check after everything is set up
-  session$sendCustomMessage("check-orientation", list())
 
   hidePageSpinner()
 }
