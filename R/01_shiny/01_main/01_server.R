@@ -55,7 +55,6 @@ app_server <- function(input, output, session) {
   observeEvent(
     input$showLegend_orientation, 
     { 
-      print(input$showLegend_orientation) # Debugging purposes only, remove later
       updateCheckboxInput(
         session, "showLegend", 
         value = input$showLegend_orientation

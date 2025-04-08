@@ -1,7 +1,7 @@
 // Function to check orientation and set showLegend value
 function updateLegendByOrientation() {
     // isLandscape will be true if width > height
-    Shiny.setInputValue('showLegend_orientation', screen.orientation.type.includes('landscape'), { priority: 'event' });
+    Shiny.setInputValue('showLegend_orientation', window.matchMedia('(orientation: landscape)').matches, { priority: 'event' });
 }
 
 $(document).ready(function() {
@@ -52,10 +52,11 @@ $(document).ready(function() {
     Shiny.addCustomMessageHandler("check-orientation", function(message) {
         updateLegendByOrientation();
 
-        // Initialize after Shiny is ready
-        // Update value when orientation changes
-        screen.orientation.addEventListener("change", updateLegendByOrientation);
-        //window.addEventListener('orientationchange', updateLegendByOrientation);
+        // Initialize after dataInit is ready
+        // change event means either it matches landscape or not
+        window.matchMedia('(orientation: landscape)').addEventListener("change", updateLegendByOrientation);
+        // screen orientatin doesn't account for browser resize
+        //screen.orientation.addEventListener("change", updateLegendByOrientation);
         // Also handle resize for browsers/devices that don't support orientationchange
         //window.addEventListener('resize', updateLegendByOrientation);
     });
