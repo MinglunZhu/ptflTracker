@@ -81,20 +81,7 @@ currencies <- trades %>%
   filter(cur != "USD") %>%
   pull(cur)
 
-a <- 1 / (1 + length(unique_tickers) + 1 + length(currencies) + 1 + length(NAMES_BMS) + 1)
-
-incProg <- function(DETAILS) {
-    if (missing(DETAILS)) {
-        incProgress(amount = a)
-
-        return()
-    }
-
-    incProgress(
-        amount = a,
-        detail = DETAILS
-    )
-}
+progStepAmt <- 1 / (1 + length(unique_tickers) + 1 + length(currencies) + 1 + length(NAMES_BMS) + 1)
 
 # Analyze trades.csv for maximum decimal places
 # Remove any extraneous whitespace, then count the characters after the decimal point if present.

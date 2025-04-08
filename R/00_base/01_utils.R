@@ -77,6 +77,19 @@ reformatTkr <- function(t) {
 }
 ################################################################## End stkVal
 
+incProg <- function(DETAILS) {
+    if (missing(DETAILS)) {
+        incProgress(amount = progStepAmt)
+
+        return()
+    }
+
+    incProgress(
+        amount = progStepAmt,
+        detail = DETAILS
+    )
+}
+
 # Add a function to safely download symbols with retries:
 safeGetSymbols <- function(TKR, END_DATE = runDate, MAX_ATTEMPTS = 3, DELAY = 15) {
   attempt <- 1

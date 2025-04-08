@@ -20,6 +20,7 @@
     --slctIpt-border: rgba(100, 100, 100, 0.5); /* Faint border for items */
 }
 
+.err-msg { color: #ff0000; }
 
 
 
@@ -188,7 +189,7 @@ section.content { padding: 0; }
   font-weight: bold;
 }
 
-.settings-column .shiny-input-container {width: auto;}
+.settings-column .shiny-input-container { width: auto; }
 
 /* Checkbox Group Flexbox Layout */
 #selectedFunds_rtns .shiny-options-group,
