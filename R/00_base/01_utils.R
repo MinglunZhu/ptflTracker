@@ -91,20 +91,23 @@ incProg <- function(DETAILS) {
 }
 
 # Add a function to safely download symbols with retries:
-safeGetSymbols <- function(TKR, END_DATE = runDate, MAX_ATTEMPTS = 3, DELAY = 15) {
+safeGetSymbols <- function(TKR, END_DATE = runDate, MAX_ATTEMPTS = 3, DELAY = 15, TIMEOUT = 120) {
   attempt <- 1
   fp <- paste0(RCDS_DIR, TKR, '.csv')
 
   repeat {
-    result <- try(
-      getSymbols(
-        TKR,
-        auto.assign = F,
-        from = start_date,
-        to = END_DATE
-      ),
-      silent = T
-    )
+    result <- R.utils::withTimeout(
+      {
+        getSymbols(
+          TKR,
+          auto.assign = F,
+          from = start_date,
+          to = END_DATE
+        )
+      },
+      timeout = TIMEOUT
+    ) %>%
+      try(silent = T)
 
     if (!inherits(result, "try-error")) {
       # save the result to the RCDS_DIR
