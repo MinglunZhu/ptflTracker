@@ -1,6 +1,6 @@
 # Utility functions
 # consts
-RCDS_DIR <- 'rcds/'
+RCDS_DIR <- 'rcds/prices/'
 # end consts
 
 ################################################################## Copied from stkVal
@@ -113,7 +113,8 @@ safeGetSymbols <- function(TKR, END_DATE = runDate, MAX_ATTEMPTS = 3, DELAY = 15
       # save the result to the RCDS_DIR
       write.zoo(
         result, fp,
-        sep = ","
+        sep = ",",
+        quote = F  # Add this to prevent quoting
       )
 
       return(result)

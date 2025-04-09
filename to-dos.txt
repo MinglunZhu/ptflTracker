@@ -1,4 +1,5 @@
 Cancel plot when input change
 link shps
+check last day no price na.locf not working
 check double plotting on init
 surburst chart

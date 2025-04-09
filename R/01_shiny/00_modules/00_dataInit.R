@@ -45,12 +45,12 @@ dataInitServer <- function(id) {
 
             message("Data Initialization Module: Session started, beginning data initialization...")
 
-            tryCatch(
+            # Wrap future chain in withProgress
+            withProgressShiny(
+                message = 'Initializing Data...',
+                value = 0,
                 {
-                    # Wrap future chain in withProgress
-                    withProgressShiny(
-                        message = 'Initializing Data...',
-                        value = 0,
+                    tryCatch(
                         {
                             all_dates <- seq(
                                 start_date, cd,
@@ -512,19 +512,20 @@ dataInitServer <- function(id) {
                             last_initDate <<- cd
                             message("Future: Data processing complete.")
                             # --- END: Data Loading & Processing Logic ---
-                        }
-                    ) # End withProgress
-                },
-                error = function(e) {
-                    # Update existing progress with error message
-                    setProgress(
-                        message = 'Initialization Failed!',
-                        detail = HTML(paste('<span class="err-msg">', e$message, '</span>'))
-                    )
+                        },
+                        error = function(e) {
+                            # Update existing progress with error message
+                            setProgress(
+                                message = 'Initialization Failed!',
+                                detail = HTML(paste('<span class="err-msg">', e$message, '</span>'))
+                            )
 
-                    stop(e)
+                            # no stop as stop seems to close the app
+                            #stop(e)
+                        }
+                    )
                 }
-            )
+            ) # End withProgress
 
             end_date
         }

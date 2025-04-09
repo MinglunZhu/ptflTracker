@@ -28,7 +28,9 @@ rtnsUI_plot <- function(id) {
 }
 
 # Server Function for the Returns Chart Module
-rtnsServer <- function(id, end_date_rv, selectedChart, selectedFunds_rv, selectedTkrs_rv, inclCash_rv, showLegend_rv, ipts_disable, ipts_enable) {
+rtnsServer <- function(
+    id, end_date_rv, selectedChart, selectedFunds_rv, selectedTkrs_rv, inclCash_rv, showLegend_rv, disableIpts, enableIpts
+) {
     moduleServer(
         id, 
         function(input, output, session) {
@@ -46,8 +48,23 @@ rtnsServer <- function(id, end_date_rv, selectedChart, selectedFunds_rv, selecte
                 }
             )
 
+            di <- function() {
+                disableIpts()
+
+                shinyjs::disable(ns('selecteDate'))
+
+                sprintf("Shiny.setInputValue('%s', false);", ns("enableIpts")) %>% shinyjs::runjs()
+            }
+
+            ei <- function() {
+                enableIpts()
+                shinyjs::enable(ns('selecteDate'))
+            }
+            
             selectedRtns_raw <- reactive({
                 req(selectedChart == 'Returns')
+
+                di()
 
                 # we will try to always trigger slider update and use slider update to trigger rebase
                 # to avoid double update on the plot
@@ -132,6 +149,8 @@ rtnsServer <- function(id, end_date_rv, selectedChart, selectedFunds_rv, selecte
             selectedRtns_rebased <- eventReactive(
                 list(needUd_rtns(), input$selectedDate),
                 {
+                    di()
+
                     # change in data frame does not trigger re-run
                     # only changes in date can trigger re-run
                     # and they we try to force change in date every time.
@@ -155,12 +174,14 @@ rtnsServer <- function(id, end_date_rv, selectedChart, selectedFunds_rv, selecte
                 }
             )
 
+            # Observer to handle plot status changes
+            observe({
+                req(input$enableIpts)
+
+                #ei()
+            })
+
             output$plot <- renderPlotly({
-                ipts_disable()
-
-                # Ensure inputs are re-enabled
-                on.exit({ ipts_enable() })
-
                 df <- selectedRtns_rebased()
 
                 # Check if no series available
@@ -267,7 +288,15 @@ rtnsServer <- function(id, end_date_rv, selectedChart, selectedFunds_rv, selecte
                         plot_bgcolor = '#222',
                         paper_bgcolor = '#222',
                         font = list(color = '#eee')
-                    )
+                    ) %>%
+                    onRender("
+                        function(el, x) {
+                            el.on('plotly_afterplot', function() {
+                                // Enable inputs when plot finishes drawing
+                                Shiny.setInputValue('enableIpts', true);
+                            });
+                        }
+                    ")
             })
 
             plot_proxy <- plotlyProxy("plot", session)

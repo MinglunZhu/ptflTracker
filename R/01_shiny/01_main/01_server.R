@@ -65,6 +65,42 @@ app_server <- function(input, output, session) {
   # Trigger initial orientation check after everything is set up
   session$sendCustomMessage("check-orientation", list())
 
+  disableIpts <- function() {
+    disable("selected_chart")
+    
+    
+    disable('selectedFunds_hldgs')
+    disable('selecteDate_hldgs')
+
+    
+    disable('tglAllFunds_btn')
+    disable("selectedFunds_rtns")
+
+    disable('tglAllTkrs_btn')
+    disable("selectedTkrs_rtns")
+    
+    disable("inclCash")
+    disable('inclClosed')
+    disable('showLegend')
+  }
+
+  enableIpts <- function() {
+    enable("selected_chart")
+
+    enable("selectedFunds_rtns")
+    enable("selecteDate_hldgs")
+    
+    enable('tglAllFunds_btn')
+    enable('selectedFunds_hldgs')
+
+    enable('tglAllTkrs_btn')
+    enable("selectedTkrs_rtns")
+
+    enable("inclCash")
+    enable("inclClosed")
+    enable('showLegend')
+  }
+
   rtnsServer(
     'rtns', end_date_rv, input$selected_chart, reactive(input$selectedFunds_rtns), reactive(input$selectedTkrs_rtns), reactive(input$inclCash), 
     reactive(input$showLegend), disableIpts, enableIpts
@@ -86,26 +122,6 @@ app_server <- function(input, output, session) {
   # Add cache for holding values with pre-calculated data
   # Store pre-calculated overall view with empty key
   #cache_hldgVals_tkrs <- reactiveVal( list(op = calcHldgVals_tkrs()) )
-
-  disableIpts <- function() {
-    disable("selected_chart")
-    disable("selectedFunds_rtns")
-    disable('selectedFunds_hldgs')
-    disable("inclCash")
-    disable('inclClosed')
-    disable('selecteDate_rtns')
-    disable('selecteDate_hldgs')
-  }
-
-  enableIpts <- function() {
-    enable("selected_chart")
-    enable("selectedFunds_rtns")
-    enable('selectedFunds_hldgs')
-    enable("inclCash")
-    enable("inclClosed")
-    enable('selecteDate_rtns')
-    enable("selecteDate_hldgs")
-  }
 
   getHldgVals <- function(HLDG_VALS) {
     # filter values for the selected date
