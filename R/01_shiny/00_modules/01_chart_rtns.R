@@ -51,14 +51,15 @@ rtnsServer <- function(
             di <- function() {
                 disableIpts()
 
-                shinyjs::disable(ns('selecteDate'))
+                # without asis param, the namespace will be added to id
+                shinyjs::disable('selectedDate')
 
                 sprintf("Shiny.setInputValue('%s', false);", ns("enableIpts")) %>% shinyjs::runjs()
             }
 
             ei <- function() {
                 enableIpts()
-                shinyjs::enable(ns('selecteDate'))
+                shinyjs::enable('selectedDate')
             }
             
             selectedRtns_raw <- reactive({
@@ -178,7 +179,7 @@ rtnsServer <- function(
             observe({
                 req(input$enableIpts)
 
-                #ei()
+                ei()
             })
 
             output$plot <- renderPlotly({
@@ -289,14 +290,17 @@ rtnsServer <- function(
                         paper_bgcolor = '#222',
                         font = list(color = '#eee')
                     ) %>%
-                    onRender("
-                        function(el, x) {
-                            el.on('plotly_afterplot', function() {
-                                // Enable inputs when plot finishes drawing
-                                Shiny.setInputValue('enableIpts', true);
-                            });
-                        }
-                    ")
+                    onRender(sprintf(
+                        "
+                            function(el, x) {
+                                el.on('plotly_afterplot', function() {
+                                    console.log('Plot finished rendering');
+                                    Shiny.setInputValue('%s', true, {priority: 'event'});
+                                });
+                            }
+                        ", 
+                        ns("enableIpts")
+                    ))
             })
 
             plot_proxy <- plotlyProxy("plot", session)

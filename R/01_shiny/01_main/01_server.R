@@ -27,7 +27,7 @@ app_server <- function(input, output, session) {
   showPageSpinner()
 
   # sprintf("Available cores: %d", parallelly::availableCores(constraints = "cgroups2.cpu.max")) %>% message()
-  
+
   # # Use 1 worker on shinyapps.io to avoid resource conflicts
   # tryCatch({
   #   future::plan(
@@ -53,12 +53,12 @@ app_server <- function(input, output, session) {
   # init settings after data init, but before plotting
   # Update showLegend based on orientation when app starts
   observeEvent(
-    input$showLegend_orientation, 
-    { 
+    input$showLegend_orientation,
+    {
       updateCheckboxInput(
-        session, "showLegend", 
+        session, "showLegend",
         value = input$showLegend_orientation
-      ) 
+      )
     }
   )
 
@@ -66,44 +66,106 @@ app_server <- function(input, output, session) {
   session$sendCustomMessage("check-orientation", list())
 
   disableIpts <- function() {
-    disable("selected_chart")
-    
-    
-    disable('selectedFunds_hldgs')
-    disable('selecteDate_hldgs')
+    # need asis because when passed to module, the module will add namespace for the module
+    # and we don't want that because these are not module inputs
+    disable(
+      "selected_chart",
+      asis = T
+    )
 
-    
-    disable('tglAllFunds_btn')
-    disable("selectedFunds_rtns")
 
-    disable('tglAllTkrs_btn')
-    disable("selectedTkrs_rtns")
-    
-    disable("inclCash")
-    disable('inclClosed')
-    disable('showLegend')
+    disable(
+      'selectedFunds_hldgs',
+      asis = T
+    )
+    disable(
+      'selectedDate_hldgs',
+      asis = T
+    )
+
+
+    disable(
+      'tglAllFunds_btn',
+      asis = T
+    )
+    disable(
+      "selectedFunds_rtns",
+      asis = T
+    )
+
+    disable(
+      'tglAllTkrs_btn',
+      asis = T
+    )
+    disable(
+      "selectedTkrs_rtns",
+      asis = T
+    )
+
+    disable(
+      "inclCash",
+      asis = T
+    )
+    disable(
+      'inclClosed',
+      asis = T
+    )
+    disable(
+      'showLegend',
+      asis = T
+    )
   }
 
   enableIpts <- function() {
-    enable("selected_chart")
+    enable(
+      "selected_chart",
+      asis = T
+    )
 
-    enable("selectedFunds_rtns")
-    enable("selecteDate_hldgs")
-    
-    enable('tglAllFunds_btn')
-    enable('selectedFunds_hldgs')
+    enable(
+      "selectedFunds_rtns",
+      asis = T
+    )
+    enable(
+      "selectedDate_hldgs",
+      asis = T
+    )
 
-    enable('tglAllTkrs_btn')
-    enable("selectedTkrs_rtns")
+    enable(
+      'tglAllFunds_btn',
+      asis = T
+    )
+    enable(
+      'selectedFunds_hldgs',
+      asis = T
+    )
 
-    enable("inclCash")
-    enable("inclClosed")
-    enable('showLegend')
+    enable(
+      'tglAllTkrs_btn',
+      asis = T
+    )
+    enable(
+      "selectedTkrs_rtns",
+      asis = T
+    )
+
+    enable(
+      "inclCash",
+      asis = T
+    )
+    enable(
+      "inclClosed",
+      asis = T
+    )
+    enable(
+      'showLegend',
+      asis = T
+    )
   }
 
   rtnsServer(
-    'rtns', end_date_rv, input$selected_chart, reactive(input$selectedFunds_rtns), reactive(input$selectedTkrs_rtns), reactive(input$inclCash), 
-    reactive(input$showLegend), disableIpts, enableIpts
+    'rtns', end_date_rv, input$selected_chart, reactive(input$selectedFunds_rtns), reactive(input$selectedTkrs_rtns),
+    reactive(input$inclCash), reactive(input$showLegend), disableIpts, enableIpts
   )
 
   # Reactive val for filtering tickers breakdown by a fund click (NULL = overall)
