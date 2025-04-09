@@ -141,37 +141,37 @@ dataInitServer <- function(id) {
                                 left_join(
                                     currencies %>%
                                         lapply(function(curr) {
-                                            cat("Downloading", curr, "/USD FX data\n")
+                                            cat("Downloading USD to", curr, "FX data\n")
 
-                                            rates <- paste0(curr, "USD=X") %>%
+                                            rates <- paste0(curr, "=X") %>%
                                                 safeGetSymbols(cd) %>%
                                                 Cl()
 
                                             # Convert xts to dataframe
                                             df <- data.frame(
                                                 date = index(rates),
-                                                xchgRate_usd = coredata(rates)
+                                                xchgRate_usd2Lc = coredata(rates)
                                             ) %>%
                                                 mutate(cur = curr)
 
-                                            colnames(df)[2] <- "xchgRate_usd"
+                                            colnames(df)[2] <- "xchgRate_usd2Lc"
 
                                             incProg()
 
                                             df
                                         }) %>%
                                         bind_rows() %>% # Combine list of dataframes into one
-                                        filter(!is.na(xchgRate_usd)), # Remove rows with NA rates if any
+                                        filter(!is.na(xchgRate_usd2Lc)), # Remove rows with NA rates if any
                                         #arrange(cur, date) # Optional: sort for clarity
                                     by = c("date", "cur")
                                 ) %>%
                                 # 5. Set USD rate to 1
-                                mutate(xchgRate_usd = ifelse(cur == "USD", 1, xchgRate_usd)) %>%
+                                mutate(xchgRate_usd2Lc = ifelse(cur == "USD", 1, xchgRate_usd2Lc)) %>%
                                 # 6. Fill missing rates using LOCF within each currency group
                                 arrange(cur, date) %>%
                                 group_by(cur) %>%
                                 fill(
-                                    xchgRate_usd, 
+                                    xchgRate_usd2Lc, 
                                     .direction = "down"
                                 ) %>% # Last Observation Carried Forward
                                 # Optional: Fill initial NAs if any currency has no data before the first date
@@ -191,9 +191,9 @@ dataInitServer <- function(id) {
                                 mutate(
                                     adj_unitCnt = unitCnt,
                                     # For HKD stocks, the trade amount is in USD. Convert it back to HKD.
-                                    amt_lclCur = if_else(cur == 'HKD', amt / xchgRate_usd, amt) #amt in local currency
+                                    amt_lclCur = if_else(cur == 'HKD', amt * xchgRate_usd2Lc, amt), #amt in local currency
+                                    amt_usd = amt_lclCur / xchgRate_usd2Lc
                                 ) %>%
-                                mutate(amt_usd = amt_lclCur * xchgRate_usd) %>%
                                 #adjust for stock splits
                                 # 2. Join Yahoo prices onto the trades dataframe
                                 left_join(
@@ -243,7 +243,7 @@ dataInitServer <- function(id) {
                                     xchgRates_df,
                                     by = c("date", "cur")
                                 ) %>%
-                                mutate(price_usd = price * xchgRate_usd)
+                                mutate(price_usd = price / xchgRate_usd2Lc)
 
                             message("Future: Calculating values...")
 
