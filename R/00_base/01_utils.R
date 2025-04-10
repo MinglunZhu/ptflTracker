@@ -92,9 +92,17 @@ incProg <- function(DETAILS) {
 
 # Add a function to safely download symbols with retries:
 safeGetSymbols <- function(TKR, END_DATE = runDate, MAX_ATTEMPTS = 3, DELAY = 15, TIMEOUT = 120) {
-  attempt <- 1
   fp <- paste0(RCDS_DIR, TKR, '.csv')
+  fe <- file.exists(fp)
 
+  if (DEBUG & fe) {
+    message(sprintf("Using local CSV file for %s for debugging.", TKR))
+
+    read.zoo(fp) %>% return()
+  }
+  
+  attempt <- 1
+  
   repeat {
     result <- R.utils::withTimeout(
       {
@@ -121,7 +129,7 @@ safeGetSymbols <- function(TKR, END_DATE = runDate, MAX_ATTEMPTS = 3, DELAY = 15
     }
 
     if(attempt >= MAX_ATTEMPTS) {
-      if (file.exists(fp)) {
+      if (fe) {
         message(sprintf("Using local CSV file for %s due to download failure.", TKR))
 
         read.zoo(fp) %>% return()

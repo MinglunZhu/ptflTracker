@@ -1,6 +1,18 @@
-check last day no price na.locf not working
 check double plotting on init
 surburst chart
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 Maybe:
 checkbox or button to toggle plot update (This allows changing multiple settings before update)

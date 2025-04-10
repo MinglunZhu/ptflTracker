@@ -7,6 +7,7 @@ rtnsUI_sldr <- function(id) {
             ns("selectedDate"), "Select Rebase Date:",
             min = start_date,
             max = runDate,
+            # default value is required
             value = start_date,
             timeFormat = "%Y-%m-%d", 
             width = "100%",
@@ -41,10 +42,10 @@ rtnsServer <- function(
                 end_date_rv(), 
                 {
                     message("Updating slider max to: ", end_date_rv())
-                    updateSliderInput(
-                        session, "selectedDate",
-                        max = end_date_rv()
-                    )
+                    # updateSliderInput(
+                    #     session, "selectedDate",
+                    #     max = end_date_rv()
+                    # )
                 }
             )
 
@@ -93,9 +94,6 @@ rtnsServer <- function(
                 #list(selectedRtns_cashAdjed(), needUd_minDate()),
                 selectedRtns_cashAdjed(),
                 {
-                    # if slider not inited, stop
-                    #req(crt)
-
                     # --- Update the NEW returns slider ---
                     min_new <- selectedRtns_cashAdjed() %>%
                         group_by(istmt) %>%
@@ -146,10 +144,20 @@ rtnsServer <- function(
                 # and we need to init it once as it won't get triggered by selectedRtns_raw as it's already run
             )
 
+            # there seems to be a first selectedDate set to start_date
+            # possibly from slider initialization
+            # we want to ignore that from triggering rebase
+            isFirst <- T
+
             # Reactive: rebase all selected return series to a common base date.
             selectedRtns_rebased <- eventReactive(
                 list(needUd_rtns(), input$selectedDate),
                 {
+                    if (isFirst) {
+                        isFirst <<- F
+                        req(F)
+                    }
+
                     di()
 
                     # change in data frame does not trigger re-run

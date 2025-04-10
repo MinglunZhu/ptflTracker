@@ -5,9 +5,9 @@ account: theshinyerapper
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 14425731
-bundleId: 10066621
+bundleId: 10086582
 url: https://thedataanalyst.shinyapps.io/ptfltracker/
 version: 1
 asMultiple: FALSE
 asStatic: FALSE
-ignoredFiles: .gitattributes|.lintr|.RData|deployShinyApps.io.R|dploy_cnctCloud.R|tests/test_utils.R|trades.xlsx
+ignoredFiles: .gitattributes|.lintr|.RData|deployShinyApps.io.R|dploy_cnctCloud.R|tests/test_utils.R|to-dos.txt|trades.xlsx
