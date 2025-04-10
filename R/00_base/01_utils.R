@@ -90,6 +90,12 @@ incProg <- function(DETAILS) {
     )
 }
 
+read_xts <- function(fp) {
+  read_csv(fp) %>%
+    column_to_rownames('Index') %>%
+    as.xts()
+}
+
 # Add a function to safely download symbols with retries:
 safeGetSymbols <- function(TKR, END_DATE = runDate, MAX_ATTEMPTS = 3, DELAY = 15, TIMEOUT = 120) {
   fp <- paste0(RCDS_DIR, TKR, '.csv')
@@ -98,7 +104,7 @@ safeGetSymbols <- function(TKR, END_DATE = runDate, MAX_ATTEMPTS = 3, DELAY = 15
   if (DEBUG & fe) {
     message(sprintf("Using local CSV file for %s for debugging.", TKR))
 
-    read.zoo(fp) %>% return()
+    read_xts(fp) %>% return()
   }
   
   attempt <- 1
@@ -132,7 +138,7 @@ safeGetSymbols <- function(TKR, END_DATE = runDate, MAX_ATTEMPTS = 3, DELAY = 15
       if (fe) {
         message(sprintf("Using local CSV file for %s due to download failure.", TKR))
 
-        read.zoo(fp) %>% return()
+        read_xts(fp) %>% return()
       } else stop("No local data available and download failed.")
     }
 

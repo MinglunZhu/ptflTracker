@@ -1,5 +1,5 @@
 # consts
-DEBUG <- F
+DEBUG <- T
 
 TOLERANCE <- .25
 
