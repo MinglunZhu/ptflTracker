@@ -1,4 +1,6 @@
-#consts
+# consts
+DEBUG <- F
+
 TOLERANCE <- .25
 
 BENCH_MARKS <- list(
@@ -8,7 +10,7 @@ BENCH_MARKS <- list(
 )
 
 NAMES_BMS <- names(BENCH_MARKS)
-#end consts
+# end consts
 
 # 1. Read in the trades CSV file
 trades <- read_csv("ipts/trades.csv") %>%

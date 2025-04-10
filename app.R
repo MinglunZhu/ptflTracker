@@ -3,10 +3,6 @@ options(shiny.sanitize.errors = F)  # Show detailed errors in development
 #options(future.debug = TRUE)  # Enable future debugging
 #options(future.wait.interval = 0.5)  # Adjust wait interval for futures
 
-# consts
-DEBUG <- F
-# end consts
-
 # the shiny app appear to need files in alphabetical order
 # and is loaded recursively, so top level will be loaded first
 # therefore we need them to be at same level in folder structure

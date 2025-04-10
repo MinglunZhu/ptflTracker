@@ -520,8 +520,9 @@ dataInitServer <- function(id) {
                                 detail = HTML(paste('<span class="err-msg">', e$message, '</span>'))
                             )
 
-                            # no stop as stop seems to close the app
-                            #stop(e)
+                            # if we don't stop, then the code completes without error
+                            # and the progress bar will close, and you won't see the message
+                            stop(e)
                         }
                     )
                 }
