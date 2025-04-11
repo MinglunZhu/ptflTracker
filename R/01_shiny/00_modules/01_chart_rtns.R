@@ -42,10 +42,10 @@ rtnsServer <- function(
                 end_date_rv(), 
                 {
                     message("Updating slider max to: ", end_date_rv())
-                    # updateSliderInput(
-                    #     session, "selectedDate",
-                    #     max = end_date_rv()
-                    # )
+                    updateSliderInput(
+                        session, "selectedDate",
+                        max = end_date_rv()
+                    )
                 }
             )
 

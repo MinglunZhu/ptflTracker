@@ -3879,7 +3879,7 @@
       "checksum": "6cb07fb6acdd385ba226aa82d4544a24"
     },
     "app.R": {
-      "checksum": "889a8fe20330042b490342e34833f10e"
+      "checksum": "2170260cb6db64b08af64b8d400ac07a"
     },
     "deployShinyApps.io.R": {
       "checksum": "43f2acc8541c0f71f4ce0b97961873de"
@@ -3897,295 +3897,298 @@
       "checksum": "0b7d654f13443304b5b0adb84bf4593a"
     },
     "R/00_base/01_utils.R": {
-      "checksum": "9b9807d09394a9308c4464e1558edd5f"
+      "checksum": "be053001027052cb4a7179d58d707311"
     },
     "R/00_base/02_data.R": {
-      "checksum": "91e57cf395ddc13dd1fc1474b9838c7d"
+      "checksum": "fc328714ce439b51bbaf166e9cd6cf0a"
     },
     "R/01_shiny/00_modules/00_dataInit.R": {
-      "checksum": "0600cffa5753ea32f52b40e113553786"
+      "checksum": "fdb7c02b7d88e4040df3fa5a3c78672a"
     },
     "R/01_shiny/00_modules/01_chart_rtns.R": {
-      "checksum": "e945edbf9a918d828eeda9021091591f"
+      "checksum": "0e226a06c63d190c08098c97d817c195"
+    },
+    "R/01_shiny/00_modules/02_chart_hldgs.R": {
+      "checksum": "b34c790b87e3e83c4f8c24229447b981"
     },
     "R/01_shiny/01_main/00_ui.R": {
-      "checksum": "32a5847ad0bb9f6fb70d80e50a6aa2b0"
+      "checksum": "0fe8400eb03e581abcf176715373ac9b"
     },
     "R/01_shiny/01_main/01_server.R": {
-      "checksum": "27f1aa49e09c85d5c44e5b62f63b454f"
+      "checksum": "fa71a1a9cf9325f55302575ea75f9519"
     },
     "rcds/prices/^GSPC.csv": {
-      "checksum": "653340841f7655381f251f36afd16400"
+      "checksum": "e31aab23f48162801b40089582141b74"
     },
     "rcds/prices/^NDX.csv": {
-      "checksum": "0a0026564ca355fde28e9bccfd2320fd"
+      "checksum": "333af97aa852586b2e04c71ada726132"
     },
     "rcds/prices/002099.SZ.csv": {
-      "checksum": "48dd4f71b15018852ad4acbd38f3b009"
+      "checksum": "1c72c1ca2c1a05f85ad846ffaa1108ed"
     },
     "rcds/prices/0390.HK.csv": {
-      "checksum": "58282e1099edcd8fe770d30df57430fc"
+      "checksum": "07d33821d0f0222eadf04e46c7446517"
     },
     "rcds/prices/0688.HK.csv": {
-      "checksum": "441108d990d2909c642cd5af3400ae68"
+      "checksum": "5ece8007ef6f78224983be8d120e305d"
     },
     "rcds/prices/0939.HK.csv": {
-      "checksum": "6bbea89c30e9e3a3135d2f24d462e311"
+      "checksum": "20465bd2985c493adef63d67c50ed76e"
     },
     "rcds/prices/1186.HK.csv": {
-      "checksum": "3eddb6c61cab740c574c294c25d8e9d9"
+      "checksum": "1bb96d1a5d3c339e66afed2fb156439e"
     },
     "rcds/prices/1288.HK.csv": {
-      "checksum": "3c53a6d860ed819387835bfedf4cd5b0"
+      "checksum": "378bf40a0a3ef23027a41bc7ab53a222"
     },
     "rcds/prices/1398.HK.csv": {
-      "checksum": "cf0bac1861df54fd2e9009fc79240ac6"
+      "checksum": "838aa1e606c8a6d6864f552138d9d089"
     },
     "rcds/prices/1898.HK.csv": {
-      "checksum": "db017d78ad79eee6c3adefdcc829fdb7"
+      "checksum": "58baa737570e39710290cf364c4160a8"
     },
     "rcds/prices/2628.HK.csv": {
-      "checksum": "4c8e709830aaded68b685fe76f51dccc"
+      "checksum": "3ce0d5d95044f70df29a687e0a008403"
     },
     "rcds/prices/3328.HK.csv": {
-      "checksum": "0b0fad8020ba64a25ea49f8c0767a794"
+      "checksum": "3135e02ed2d7d77c00212f44da93860e"
     },
     "rcds/prices/3988.HK.csv": {
-      "checksum": "3ce9963ca42d7c49487c56199449b8b6"
+      "checksum": "a3885998c36659f401371daeaa95ae9d"
     },
     "rcds/prices/513100.SS.csv": {
-      "checksum": "eebd2c7ca04bb11dd4180727c8843c3c"
+      "checksum": "1442e52a67d06245370f00fc8da8e95a"
     },
     "rcds/prices/513500.SS.csv": {
-      "checksum": "093f8aac2864cb4bb77912d1bef27030"
+      "checksum": "6246ca682f82920578ed2bee52d64766"
     },
     "rcds/prices/AAPL.csv": {
-      "checksum": "aad1acb2481b68e17d615a70e8d61d23"
+      "checksum": "dcd8f0add71d07bbcff9ac043fc426c0"
     },
     "rcds/prices/ACWI.csv": {
-      "checksum": "751dc8b3a170c2c5b190c02b9092596b"
+      "checksum": "a104993ec121666e093d00a93c927aec"
     },
     "rcds/prices/AIQ.csv": {
-      "checksum": "dc4b9d5395afdd3c618395c14aec6066"
+      "checksum": "fbab0b0c3902a4a578ac3506cfde271e"
     },
     "rcds/prices/AMTD.csv": {
-      "checksum": "3be54e442fa9f7cf710c1a8b902e6124"
+      "checksum": "dd5da7c70fc7f29f93c9c983db69ca9a"
     },
     "rcds/prices/AMZN.csv": {
-      "checksum": "390d0ecd84ad37ad7b1b0db211bc25c2"
+      "checksum": "e39aa082b7d5d90da61bc3cef382ca9c"
     },
     "rcds/prices/ARKQ.csv": {
-      "checksum": "84e32557d30fb8909400ba91b6b67bb7"
+      "checksum": "81e3cc56a004392adf1f15695bd839c4"
     },
     "rcds/prices/ATLC.csv": {
-      "checksum": "c536e5d1fcc900494f421b518c2c1b41"
+      "checksum": "ed7ddce2444a9b93c5d4034ede1c5453"
     },
     "rcds/prices/AVGO.csv": {
-      "checksum": "b5726c02b85033ce72b1eb41a49d1fed"
+      "checksum": "f775435660bdd3dabd440cfe9fb71a15"
     },
     "rcds/prices/BAC.csv": {
-      "checksum": "217a19b5b372c1e45cd1a7ef01d801c9"
+      "checksum": "602283868d0b49bdfe0bd715d967a65e"
     },
     "rcds/prices/BAR.csv": {
-      "checksum": "6eb9a2c6fe9663e4e7c7c427171a915b"
+      "checksum": "0ebd63eeaebb8606ac73dc8b0509e409"
     },
     "rcds/prices/BCC.csv": {
-      "checksum": "833e36aa2254008735a56589b33df00d"
+      "checksum": "97e874333ee4752e3f8e1da84f9d4915"
     },
     "rcds/prices/BIDU.csv": {
-      "checksum": "cfce3f3494cdffb4eb3548c7a01ba0a2"
+      "checksum": "3e7328f8569f2fe2a48e8ea62d9f167d"
     },
     "rcds/prices/BRK-B.csv": {
-      "checksum": "ebf7916ae7d55b711bfa7e7041cfd950"
+      "checksum": "58db4ee208ae003e438c5041a85f3730"
     },
     "rcds/prices/BWLP.csv": {
-      "checksum": "ea05d324fbcaec696479ecae231cc524"
+      "checksum": "daccc6e7c4f56fd704c7e44a97a06773"
     },
     "rcds/prices/CIVI.csv": {
-      "checksum": "47fd54bdaf6f8aa7eb804fe1efc63edb"
+      "checksum": "9f76c01589a7587bcc8bacf7c5f4390d"
     },
     "rcds/prices/CNY=X.csv": {
-      "checksum": "9ac3a462138b535d93894e6951d7eeac"
+      "checksum": "f225a4a129f071a4010e86b59fd35641"
     },
     "rcds/prices/CNYUSD=X.csv": {
       "checksum": "76bc9d73ed4609ebf6337e5c559bbd91"
     },
     "rcds/prices/CQQQ.csv": {
-      "checksum": "80b61b7afc89d55d88353cad0249c6e7"
+      "checksum": "e3c08845d2786025fa02cbe013611343"
     },
     "rcds/prices/DASH.csv": {
-      "checksum": "29125b0bcdac02a39105370f4ae8b32f"
+      "checksum": "937698bb58ccc6b0ea4df4938582fae2"
     },
     "rcds/prices/DRIV.csv": {
-      "checksum": "f59a18b0e9f2b1848dc8ac679bb99969"
+      "checksum": "338478cd72a1b9d4c326c198064b959e"
     },
     "rcds/prices/EHLD.csv": {
-      "checksum": "019dda8b69647abe6c95e03caa50d59f"
+      "checksum": "d343b5f8808b69ac779bcee87c370a57"
     },
     "rcds/prices/ESEA.csv": {
-      "checksum": "3e56292dfaeec2c94c7b18b0379af50b"
+      "checksum": "a619ab6cae140aea810b0303b96bff9b"
     },
     "rcds/prices/EUR=X.csv": {
-      "checksum": "798e98878610bf702f4b86792ab89084"
+      "checksum": "0ddc8498f0236b164e83e394972a9cc4"
     },
     "rcds/prices/EURUSD=X.csv": {
       "checksum": "862ddfd4ca67d9372b22c893b2e6733e"
     },
     "rcds/prices/FTNT.csv": {
-      "checksum": "454ad4fed735c86eeeb1b1bac2825b54"
+      "checksum": "b90a438d71d9f8317d2957073e8996e8"
     },
     "rcds/prices/GGB.csv": {
-      "checksum": "e41b220c02b1615e935d048c4c2b6554"
+      "checksum": "3e8f14bd8ab87e4945eef9be326abe98"
     },
     "rcds/prices/GOOG.csv": {
-      "checksum": "e5fca8c25c3a44ebf2cf5f1ff138cd6a"
+      "checksum": "c478fd6084abc8756eb98173b10d3478"
     },
     "rcds/prices/GOOGL.csv": {
-      "checksum": "d80a0825b49d15a2aea8be52fd62962b"
+      "checksum": "fce8eed1c95c65d07ba97df56e7632f8"
     },
     "rcds/prices/GSL.csv": {
-      "checksum": "cccbe8f288022ec2e5f67b7684e2b216"
+      "checksum": "aac23e084f3d03f624689b77bd977d2f"
     },
     "rcds/prices/HKD=X.csv": {
-      "checksum": "80e4f6120a5c6605a5601e67686e4474"
+      "checksum": "9995f66d5cf6d0c58c5badde7a15675f"
     },
     "rcds/prices/HKDUSD=X.csv": {
       "checksum": "a5b7ec043dc3c8baeae13b608046fe7b"
     },
     "rcds/prices/HLAG.F.csv": {
-      "checksum": "264a0ba55f0cbe139e5d1f6ee0d3786c"
+      "checksum": "58fa3336a96ae0e25caa44c581503131"
     },
     "rcds/prices/IETC.csv": {
-      "checksum": "78bffe51161c2fde6c603fe025f87456"
+      "checksum": "3fd92e19facc0f43957a787685afe401"
     },
     "rcds/prices/INTC.csv": {
-      "checksum": "9af1ad80c7ce1d52f044f2fc61bd01a8"
+      "checksum": "7db778418cbb9cc74f46005a70175cb5"
     },
     "rcds/prices/IWY.csv": {
-      "checksum": "0bf7125328bf26db7a342fef0503c140"
+      "checksum": "64aabf5280655a5f46eb25722888e99c"
     },
     "rcds/prices/JPM.csv": {
-      "checksum": "62dd15332a9598a1230c34c6c1c4b659"
+      "checksum": "bdf25a433c7cc788deaabd028e1edda0"
     },
     "rcds/prices/LLY.csv": {
-      "checksum": "07a11ce9e563eb6726baab21bd1706f0"
+      "checksum": "4be160ed5b151c1a4a14f175f4a34d36"
     },
     "rcds/prices/LRNZ.csv": {
-      "checksum": "3e886baca3816b661394164111eafa8e"
+      "checksum": "d7e9e355dd2c45cfe2a9b288d7159917"
     },
     "rcds/prices/MA.csv": {
-      "checksum": "e541d07e44c82276482c1ce47e2fb305"
+      "checksum": "13bb2d600ec538df21434b34e6c95e66"
     },
     "rcds/prices/MC.PA.csv": {
-      "checksum": "73b2f18016fd27c151e5f0fa9dcf3793"
+      "checksum": "67c7689169a563a484025395a7097043"
     },
     "rcds/prices/MCHI.csv": {
-      "checksum": "c6665f2a9ca35bd7b1d8dee38b36be1d"
+      "checksum": "bfcb0b702b1f125a9ca683370b313377"
     },
     "rcds/prices/META.csv": {
-      "checksum": "f972b5a12176786726a74ec800e2e510"
+      "checksum": "d0ecf3f8c401bd503201e48d57c30691"
     },
     "rcds/prices/MSFT.csv": {
-      "checksum": "8b96cb2293afd548ae1b6f320ee1ca77"
+      "checksum": "a41a9dedb3c3c8b1f58d06ca28c4ce49"
     },
     "rcds/prices/MTH.csv": {
-      "checksum": "9b8b3a94627086d87a213a25d9d83f65"
+      "checksum": "5ed734b538e23d1ea58ed680116ba771"
     },
     "rcds/prices/NTES.csv": {
-      "checksum": "e923a135ad8569bc4ec2d6bab8d79d83"
+      "checksum": "4920c14b008d12bacec7424c33aa4c53"
     },
     "rcds/prices/NVDA.csv": {
-      "checksum": "7d999c0190553573ad49efcc6046bc49"
+      "checksum": "88f4a9577140d17d2841b46fbf0e2eb4"
     },
     "rcds/prices/NVO.csv": {
-      "checksum": "d0904ed6f473ed51558ba33fe935e27f"
+      "checksum": "7756a103c2c6915f065d99e6662f89bd"
     },
     "rcds/prices/PFG.csv": {
-      "checksum": "f588603d3df4a3e31c101e48163700bf"
+      "checksum": "0d9647c4cb8bc7fcc9752a8b16225705"
     },
     "rcds/prices/PFSI.csv": {
-      "checksum": "62f5428809bd0233d745c6fb7d40c085"
+      "checksum": "74d3fc3c88ca4efc0b9fc8250bcd43e2"
     },
     "rcds/prices/PLTR.csv": {
-      "checksum": "e1e33646f6869562d812ab2af66ed71a"
+      "checksum": "416048131f16160e2990fdd1c183d9d1"
     },
     "rcds/prices/QQQ.csv": {
-      "checksum": "500fac74272f9300364c43591d6be74c"
+      "checksum": "6895e0dc39bf0d1414d7dc677eb38bb0"
     },
     "rcds/prices/RIO.csv": {
-      "checksum": "a0f26d10cbb33eccb5e6d4200ed65128"
+      "checksum": "172d54be9a3cdf9160857e172af8ad18"
     },
     "rcds/prices/SMH.csv": {
-      "checksum": "dc589df5bb37d18ccd1b786baf6418d7"
+      "checksum": "c887d93ad6aef61905fed69b99b69adf"
     },
     "rcds/prices/SOXQ.csv": {
-      "checksum": "2b0cc809fe4dbbabec8180269ceb48f8"
+      "checksum": "beea97e4dd3185b18e55b590db2e945a"
     },
     "rcds/prices/SPXT.csv": {
-      "checksum": "deb8df9b35ada4593960e290d70bb048"
+      "checksum": "e789d66b489c0e3b7da001339dfaaf96"
     },
     "rcds/prices/STIP.csv": {
-      "checksum": "c3ebe9c96e3e9e2dcd0e348baad9de6b"
+      "checksum": "189c4df9b64df79c19bb8ca71a501451"
     },
     "rcds/prices/STLA.csv": {
-      "checksum": "82141e0efd79128b1b78891f25ad8e44"
+      "checksum": "81c65969f1d015873ba848f1c86eb774"
     },
     "rcds/prices/STXNDQ.JO.csv": {
-      "checksum": "3927798581ca8b22219a45fdbebd1a3c"
+      "checksum": "cb904e46d0b864f9496fa15ea7748c95"
     },
     "rcds/prices/SYG500.JO.csv": {
-      "checksum": "3f0fcf953b905bcc5eaafe491dffc855"
+      "checksum": "0755eecb8197a7e5ea2e94e0b7336840"
     },
     "rcds/prices/SYGJP.JO.csv": {
-      "checksum": "cad48db82a2630235476648c534d3bfa"
+      "checksum": "ee71b459eb448d10f0574da0ae62c3bf"
     },
     "rcds/prices/T.csv": {
-      "checksum": "38754c6ab206f140cbf2278c3099211a"
+      "checksum": "4cde6e2682c535d69bee252d9c2f0646"
     },
     "rcds/prices/TECL.csv": {
-      "checksum": "b6d13815394df5237921f8f4bd0bae7f"
+      "checksum": "0dec706d9a6d45697245f3ba77db0b8b"
     },
     "rcds/prices/TIP.csv": {
-      "checksum": "3501a9205efb9b2ca0d46cedd5eef913"
+      "checksum": "b48538419c6a2803b88737997bfa20b6"
     },
     "rcds/prices/TMHC.csv": {
-      "checksum": "db84f759c1bf3c35c53d2fca88e08e1a"
+      "checksum": "183994ca586e0ef00bde907752f2ad8d"
     },
     "rcds/prices/TQQQ.csv": {
-      "checksum": "9b396d6bb8b6f869b44be70cf3fcae9e"
+      "checksum": "908bc0f8e3e9d32e02dfe74d119dcfe1"
     },
     "rcds/prices/TSLA.csv": {
-      "checksum": "b8e26317b39688b6cfdaaef7f89cb3f5"
+      "checksum": "ec48f15c3c62d5cfbcda432999e85036"
     },
     "rcds/prices/TSM.csv": {
-      "checksum": "62d63f86cc90bc2134ec603f18d1b93a"
+      "checksum": "0c7c595555617d72735c84c2af3ea069"
     },
     "rcds/prices/UBS.csv": {
-      "checksum": "5cf57f287da4b53e6834e01e4e0cb061"
+      "checksum": "39e6d993033c4bd0fb0bb2f1cbd0bbdf"
     },
     "rcds/prices/UNH.csv": {
-      "checksum": "337d502ab7c58ffda6c39a2db37c03b8"
+      "checksum": "f4a87115de63e30c297e41c1e93ad071"
     },
     "rcds/prices/UPRO.csv": {
-      "checksum": "9577df897c2b00b64bf2baad3072ca3d"
+      "checksum": "161a33c9a6d783dd27a25818af5aa7ab"
     },
     "rcds/prices/V.csv": {
-      "checksum": "9d14a5066c05237a246ed298889b9cd1"
+      "checksum": "faaee2350f5571fb9ce446b465445cad"
     },
     "rcds/prices/VOO.csv": {
-      "checksum": "c51b5f60edac384e0174854a76bf04c2"
+      "checksum": "2541d697ee28c8d4eea11561371ff884"
     },
     "rcds/prices/WAL.csv": {
-      "checksum": "7eb75b9dead68f19c0f3c00e42da298d"
+      "checksum": "1354345e0e425ee6c1fb7241ec3c3313"
     },
     "rcds/prices/XLK.csv": {
-      "checksum": "5bb85a93f053c98879dd40aadd0fafd1"
+      "checksum": "0fd7bdfe545beacaa8401df80c0803e6"
     },
     "rcds/prices/XOM.csv": {
-      "checksum": "234ea4f83c1ab7042380298732075eea"
+      "checksum": "fc331666dec307ebf2d0cde84944d2e8"
     },
     "rcds/prices/ZAR=X.csv": {
-      "checksum": "77c11d38b8210a15aaced126ccbf4c2f"
+      "checksum": "2ed1647c6ce09d295685bf9a00abb15d"
     },
     "rcds/prices/ZARUSD=X.csv": {
       "checksum": "88e4de06c8b437b8fa8799a30510ce03"
@@ -4200,7 +4203,7 @@
       "checksum": "d71488e476685d4cc2392e90f99c0331"
     },
     "to-dos.txt": {
-      "checksum": "1adfc99c31ddfcf1887d7aebd66c53b6"
+      "checksum": "1a99afae5af155cec82f33ce818894b2"
     },
     "trades.xlsx": {
       "checksum": "777078d0073074db873e5029dd08a282"

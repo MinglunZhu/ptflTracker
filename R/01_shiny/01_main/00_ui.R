@@ -63,20 +63,7 @@ app_ui <- tagList(
             ), # end conditionalPanel
             conditionalPanel(
               condition = "input.selected_chart == 'Holdings'",
-              tags$li(
-                sliderInput(
-                  "selectedDate_hldgs", "Select Date:",
-                  min = start_date,
-                  max = runDate,
-                  value = runDate,
-                  timeFormat = "%Y-%m-%d", 
-                  width = "100%",
-                  animate = animationOptions(
-                    interval = 1000,   # milliseconds between frames
-                    loop = T      # continue playing in a loop
-                  )
-                ) # end sliderInput
-              )
+              hldgsUI_sldr("hldgs")
             ), # end conditionalPanel
             # Container for the three columns
             tags$div(
@@ -162,24 +149,7 @@ app_ui <- tagList(
       conditionalPanel(
         condition = "input.selected_chart == 'Holdings'",
         shinycssloaders::withSpinner(
-          fluidRow(
-            column(
-              6,
-              plotlyOutput(
-                "fundsPie",
-                height = "100vh",
-                width = "100%"
-              )
-            ),
-            column(
-              6,
-              plotlyOutput(
-                "tickersPie",
-                height = "100vh",
-                width = "100%"
-              )
-            )
-          ),
+          hldgsUI_plot("hldgs"),
           type = 2
         )
       ),

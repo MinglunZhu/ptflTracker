@@ -16,6 +16,7 @@ source("R/00_base/02_data.R")
 # Shiny app files
 source("R/01_shiny/00_modules/00_dataInit.R")
 source("R/01_shiny/00_modules/01_chart_rtns.R")
+source("R/01_shiny/00_modules/02_chart_hldgs.R")
 
 source("R/01_shiny/01_main/00_ui.R")
 source("R/01_shiny/01_main/01_server.R")

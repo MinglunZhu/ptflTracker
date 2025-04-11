@@ -99,13 +99,6 @@ read_xts <- function(fp) {
 # Add a function to safely download symbols with retries:
 safeGetSymbols <- function(TKR, END_DATE = runDate, MAX_ATTEMPTS = 3, DELAY = 15, TIMEOUT = 120) {
   fp <- paste0(RCDS_DIR, TKR, '.csv')
-  fe <- file.exists(fp)
-
-  if (DEBUG & fe) {
-    message(sprintf("Using local CSV file for %s for debugging.", TKR))
-
-    read_xts(fp) %>% return()
-  }
   
   attempt <- 1
   
@@ -135,7 +128,7 @@ safeGetSymbols <- function(TKR, END_DATE = runDate, MAX_ATTEMPTS = 3, DELAY = 15
     }
 
     if(attempt >= MAX_ATTEMPTS) {
-      if (fe) {
+      if (file.exists(fp)) {
         message(sprintf("Using local CSV file for %s due to download failure.", TKR))
 
         read_xts(fp) %>% return()
@@ -241,27 +234,12 @@ getTkrGrps <- function(DF, TKR_COL) {
     base::split(df$grp)   
 }
 
-createPieLayout <- function(
-  PLOT, TITLE,
-  TITLE_FONT = list(
-    family = "Arial",
-    size = 18,
-    color = "#eee"
-  ),
-  FONT = list(color = '#eee'),
-  BG_COLOR = '#222'
-) {
-  layout(
-    PLOT,
-    title = list(
-      text = TITLE,
-      font = TITLE_FONT
-    ),
-    paper_bgcolor = BG_COLOR,
-    plot_bgcolor = BG_COLOR,
-    font = FONT,
-    showlegend = F,
-    # Add these for complete dark mode
-    scene = list(bgcolor = BG_COLOR)
-  )
+sumPtflVal <- function(DF) {
+  DF %>%
+    group_by(date) %>%
+    summarise(val = sum(val)) %>%
+    mutate(
+        id = 'Portfolio',
+        parent = ''
+    )
 }

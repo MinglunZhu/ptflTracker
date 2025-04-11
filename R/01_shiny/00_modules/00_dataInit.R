@@ -35,11 +35,17 @@ dataInitServer <- function(id) {
             end_date <- reactiveVal(cd)
 
             if (
-                weekdays(cd) %in% c("Saturday", "Sunday")
-                && exists("last_initDate", envir = .GlobalEnv)
-                && last_initDate >= cd - ((format(cd, "%u") %>% as.integer() - 5) %% 7)
+                DEBUG
+                | (
+                    weekdays(cd) %in% c("Saturday", "Sunday")
+                    && exists("last_initDate", envir = .GlobalEnv)
+                    && last_initDate >= cd - ((format(cd, "%u") %>% as.integer() - 5) %% 7)
+                )
             ) {
-                paste("Data Initialization Module: Skipping data initialization on weekend. Last initialization date:", last_initDate) %>% message()
+                message(
+                    if (DEBUG) "Data Initialization Module: Skipping data initialization in debug mode."
+                    else paste("Data Initialization Module: Skipping data initialization on weekend. Last initialization date:", last_initDate)
+                )
                 return(end_date)
             }
 
@@ -352,36 +358,6 @@ dataInitServer <- function(id) {
                                 ) %>%
                                 ungroup()
 
-                            message("Future: Calculating holdings...")
-
-                            #add cash for overall portfolio and individual funds only (no combination of funds)
-                            hldgs_df <- bind_rows(
-                                vals_df,
-                                rtns_df %>%
-                                    filter(type != 'Ticker') %>%
-                                    select(istmt, date, val_cash) %>%
-                                    rename(val = val_cash) %>%
-                                    mutate(
-                                        tkr = 'Cash',
-                                        fund = if_else(istmt == 'Overall Portfolio', 'Cash', istmt)
-                                    )
-                            )
-
-                            # calculate cash val dynamically depending on the selected fund
-                            # because there are too many possible choices, it's difficult to pre calculate for all of them
-                            # so we will calculate them dynamically
-                            calcHldgVals_tkrs <- function(FUNDS, INCL_CASH) {
-                                r <- filter(hldgs_df, fund %in% FUNDS)
-
-                                if (!INCL_CASH) r <- filter(r, tkr != 'Cash')
-
-                                if (length(FUNDS) == 1) return(r)
-
-                                r <- r %>%
-                                    group_by(tkr, date) %>%
-                                    summarise(val = sum(val))
-                            }
-
                             incProg("Downloading benchmark index prices...")
 
                             # Download S&P 500 and Nasdaq 100 index data and calculate cumulative returns
@@ -423,6 +399,69 @@ dataInitServer <- function(id) {
 
                                 incProg()
                             }
+
+                            message("Future: Calculating holdings...")
+
+                            # add cash for overall portfolio only
+                            # vals_df has each tkr in each fund where tkr has units
+                            hldgs_funds_df <- bind_rows(
+                                # add each fund with portfolio as parent
+                                vals_df %>%
+                                    group_by(fund, date) %>%
+                                    summarise(
+                                        val = sum(
+                                            val,
+                                            na.rm = T
+                                        ),
+                                        .groups = 'drop'
+                                    ) %>%
+                                    mutate(parent = 'Portfolio') %>%
+                                    rename(id = fund),
+                                # add cash for portfolio
+                                rtns_df %>%
+                                    filter(istmt == 'Overall Portfolio') %>%
+                                    select(istmt, date, val_cash) %>%
+                                    rename(val = val_cash) %>%
+                                    mutate(
+                                        id = 'Cash',
+                                        parent = 'Portfolio',
+                                        isInclCash = T
+                                    )
+                            )
+
+                            hldgs_df <<- vals_df %>%
+                                rename(
+                                    parent = fund,
+                                    id = tkr
+                                ) %>%
+                                bind_rows(
+                                    # add funds
+                                    hldgs_funds_df,
+                                    # add portfolio with cash
+                                    hldgs_funds_df %>%
+                                        sumPtflVal() %>%
+                                        mutate(isInclCash = T),
+                                    # without cash
+                                    hldgs_funds_df %>%
+                                        filter(id != 'Cash') %>%
+                                        sumPtflVal() %>%
+                                        mutate(isInclCash = F)
+                                )
+
+                            # calculate cash val dynamically depending on the selected fund
+                            # because there are too many possible choices, it's difficult to pre calculate for all of them
+                            # so we will calculate them dynamically
+                            # calcHldgVals_tkrs <- function(FUNDS, INCL_CASH) {
+                            #     r <- filter(hldgs_df, fund %in% FUNDS)
+
+                            #     if (!INCL_CASH) r <- filter(r, tkr != 'Cash')
+
+                            #     if (length(FUNDS) == 1) return(r)
+
+                            #     r <- r %>%
+                            #         group_by(tkr, date) %>%
+                            #         summarise(val = sum(val))
+                            # }
 
                             message("Future: Preparing choice lists...")
 

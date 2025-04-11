@@ -1,6 +1,6 @@
 surburst chart
-
-
+AI gen key insights and recommendations
+Avoid multiple concurrent downloads when multiple users start connect to a session (use global flag to check if a download is in progress)
 
 
 
@@ -14,4 +14,121 @@ surburst chart
 
 
 Maybe:
+Check if progress bar disappears on error on the cloud host, if so, try to fix.
 checkbox or button to toggle plot update (This allows changing multiple settings before update)
+Use common template for modules
+
+
+
+
+
+
+
+Old code:
+funds pie
+
+# Add pull column only when we have data
+                sfs <- selectedFunds_hldgs()
+
+if(nrow(f) == 0) {
+                # Return empty plot if no data
+                plot_ly() %>%
+                  layout(
+                    title = "No holdings data available",
+                    paper_bgcolor = '#222',
+                    plot_bgcolor = '#222',
+                    font = list(color = '#eee')
+                  )
+              } else {
+                # Add pull column only when we have data
+                sfs <- selectedFunds_hldgs()
+
+                f %>%
+                  mutate(pull = ifelse(name %in% sfs, 0.1, 0)) %>%
+                  plot_ly(
+                    labels = ~name,
+                    values = ~val,
+                    type = 'pie',
+                    source = "fundsPie",
+                    customdata = ~name,           # for click events
+                    pull = ~pull,                # pull out selected slice
+                    hole = 0.6,
+                    textinfo = 'label+percent',
+                    insidetextorientation = 'radial',
+                    marker = list(
+                      line = list(
+                        color = 'rgba(0, 255, 242, 0.3)',  # Cyan glow effect
+                        width = 1
+                      ),
+                      colors = CYBER_COLORS
+                    ),
+                    hoverinfo = 'label+percent+value',
+                    opacity = 0.9,
+                    direction = 'clockwise',
+                    key = ~name # Add unique key for each slice
+                  ) %>%
+                  htmlwidgets::onRender("
+                    function(el) {
+                      el.on('plotly_click', function(d) {
+                        console.log('Click event:', d);
+                        Shiny.setInputValue('pie_click', {
+                          customdata: d.points[0].customdata,
+                          curveNumber: d.points[0].curveNumber,
+                          timestamp: new Date()
+                        });
+                      });
+                    }
+                  ") %>%
+                  createPieLayout(
+                    "Holdings by Fund",
+                    FONT = list(
+                      color = '#00fff2',  # Cyan text
+                      family = "Arial"
+                    )
+                  )
+              }
+
+# Replace plotly_click observer with pie_click observer
+            observeEvent(
+                input$pie_click,
+                {isolate({
+                clickedFund <- as.character(input$pie_click$customdata)# Ensure consistent type for comparison
+
+                if(!is.null(clickedFund)) {
+                    sfs <- selectedFunds_hldgs()
+
+                    if (clickedFund %in% sfs) {
+                    s <- setdiff(sfs, clickedFund)
+                    } else {
+                    s <- c(sfs, clickedFund)
+                    }
+
+                    selectedFunds_hldgs(s)
+                }
+                })}
+            )
+
+createPieLayout <- function(
+  PLOT, TITLE,
+  TITLE_FONT = list(
+    family = "Arial",
+    size = 18,
+    color = "#eee"
+  ),
+  FONT = list(color = '#eee'),
+  BG_COLOR = '#222'
+) {
+  layout(
+    PLOT,
+    title = list(
+      text = TITLE,
+      font = TITLE_FONT
+    ),
+    paper_bgcolor = BG_COLOR,
+    plot_bgcolor = BG_COLOR,
+    font = FONT,
+    showlegend = F,
+    # Add these for complete dark mode
+    scene = list(bgcolor = BG_COLOR)
+  )
+}
