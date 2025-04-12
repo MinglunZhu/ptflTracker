@@ -52,7 +52,7 @@ hldgsUI_plot <- function(id) {
 
 # Server Function for the Returns Chart Module
 hldgsServer <- function(
-    id, end_date_rv, selectedChart, selectedFunds_rv, inclCash_rv, showLegend_rv, disableIpts, enableIpts
+    id, end_date_rv, selectedChart_rv, selectedFunds_rv, inclCash_rv, showLegend_rv, disableIpts, enableIpts
 ) {
     moduleServer(
         id, 
@@ -86,17 +86,23 @@ hldgsServer <- function(
                 shinyjs::enable('selectedDate')
             }
             
+            isFirst_chart <- T
+
             # needed for reactive context which caches the results
-            selectedHldgVals_raw <- reactive({
-                req(selectedChart == 'Holdings')
+            selectedHldgVals_raw <- eventReactive(
+                input$selectedDate,
+                {
+                    if (isFirst_chart) isFirst_chart <<- F
+                    else req(selectedChart_rv() == 'Holdings')
 
-                di()
+                    di()
 
-                filter(
-                    hldgs_df, 
-                    date == input$selectedDate
-                )
-            })
+                    filter(
+                        hldgs_df, 
+                        date == input$selectedDate
+                    )
+                }
+            )
 
             selectedHldgVals_cashAdj <- reactive({
                 filter(

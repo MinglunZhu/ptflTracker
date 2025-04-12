@@ -30,7 +30,7 @@ rtnsUI_plot <- function(id) {
 
 # Server Function for the Returns Chart Module
 rtnsServer <- function(
-    id, end_date_rv, selectedChart, selectedSrcs_rv, selectedCtgs_rv, selectedFunds_rv, selectedUas_rv, inclCash_rv, showLegend_rv,
+    id, end_date_rv, selectedChart_rv, selectedSrcs_rv, selectedCtgs_rv, selectedFunds_rv, selectedUas_rv, inclCash_rv, showLegend_rv,
     disableIpts, enableIpts
 ) {
     moduleServer(
@@ -64,22 +64,30 @@ rtnsServer <- function(
                 shinyjs::enable('selectedDate')
             }
             
-            selectedRtns_raw <- reactive({
-                req(selectedChart == 'Returns')
+            isFirst_chart <- T
 
-                di()
+            selectedRtns_raw <- eventReactive(
+                list(
+                    selectedSrcs_rv(), selectedCtgs_rv(), selectedFunds_rv(), selectedUas_rv()
+                ),
+                {
+                    if (isFirst_chart) isFirst_chart <<- F
+                    else req(selectedChart_rv() == 'Returns')
 
-                # we will try to always trigger slider update and use slider update to trigger rebase
-                # to avoid double update on the plot
-                rtns_df %>%
-                    filter(
-                        istmt %in% c(
-                            'Overall Portfolio', NAMES_BMS, selectedSrcs_rv(), selectedCtgs_rv(), selectedFunds_rv(),
-                            selectedUas_rv()
-                        )
+                    di()
+
+                    # we will try to always trigger slider update and use slider update to trigger rebase
+                    # to avoid double update on the plot
+                    rtns_df %>%
+                        filter(
+                            istmt %in% c(
+                                'Overall Portfolio', NAMES_BMS, selectedSrcs_rv(), selectedCtgs_rv(), selectedFunds_rv(),
+                                selectedUas_rv()
+                            )
                     ) %>%
                     select(istmt, istmt_legend, type, date, cmltvRtn_inclCash, cmltvRtn_xcluCash)
-            })
+                }
+            )
 
             selectedRtns_cashAdjed <- reactive({
                 selectedRtns_raw() %>%
@@ -153,14 +161,14 @@ rtnsServer <- function(
             # there seems to be a first selectedDate set to start_date
             # possibly from slider initialization
             # we want to ignore that from triggering rebase
-            isFirst <- T
+            isFirst_date <- T
 
             # Reactive: rebase all selected return series to a common base date.
             selectedRtns_rebased <- eventReactive(
                 list(needUd_rtns(), input$selectedDate),
                 {
-                    if (isFirst) {
-                        isFirst <<- F
+                    if (isFirst_date) {
+                        isFirst_date <<- F
                         req(F)
                     }
 

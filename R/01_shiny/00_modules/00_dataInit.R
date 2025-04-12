@@ -44,7 +44,7 @@ dataInitServer <- function(id) {
                     msg <- paste("Data Initialization Module: Skipping data initialization on weekend. Last initialization date:", last_initDate)
                 }
             } else if (DEBUG) {
-                msg <- paste("Data Initialization Module: Skipping data initialization on weekend. Last initialization date:", last_initDate)
+                msg <- "Data Initialization Module: Skipping data initialization in debug mode."
             }
 
             if (!is.null(msg)) {
@@ -448,11 +448,10 @@ dataInitServer <- function(id) {
                                             parent = ''
                                         ),
                                     # add funds
-                                    rename(
-                                        vals_df,
-                                        lbl = fund,
-                                        parent = ctg
-                                    )
+                                    # funds' parent (ctg) has compound id (src + ctg)
+                                    vals_df %>%
+                                        rename(lbl = fund) %>%
+                                        mutate(parent = paste(src, ctg))
                                 ) %>%
                                 mutate(id = lbl) %>%
                                 bind_rows(
@@ -477,7 +476,7 @@ dataInitServer <- function(id) {
                                         mutate(id = paste(parent, lbl))
                                 ) %>%
                                 filter(val > 0) %>%
-                                group_by(id, parent, lbl, date) %>%
+                                group_by(id, parent, lbl, date, isInclCash) %>%
                                 summarise(
                                     val = sum(
                                         val,

@@ -269,13 +269,13 @@ app_server <- function(input, output, session) {
   }
 
   rtnsServer(
-    'rtns', end_date_rv, input$selected_chart, reactive(input$selectedSrcs_rtns), reactive(input$selectedCtgs_rtns),
+    'rtns', end_date_rv, reactive(input$selected_chart), reactive(input$selectedSrcs_rtns), reactive(input$selectedCtgs_rtns),
     reactive(input$selectedFunds_rtns), reactive(input$selectedUas_rtns), reactive(input$inclCash), reactive(input$showLegend),
     disableIpts, enableIpts
   )
 
   hldgsServer(
-    'hldgs', end_date_rv, input$selected_chart, reactive(input$selectedFunds_hldgs), reactive(input$inclCash),
+    'hldgs', end_date_rv, reactive(input$selected_chart), reactive(input$selectedFunds_hldgs), reactive(input$inclCash),
     reactive(input$showLegend), disableIpts, enableIpts
   )
 
