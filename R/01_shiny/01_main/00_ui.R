@@ -111,6 +111,15 @@ app_ui <- tagList(
                       value = T
                     )
                   )
+                ),
+                conditionalPanel(
+                  condition = "input.selected_chart == 'Returns'",
+                  tags$li(  
+                    checkboxInput(
+                      "showRangeSldr", "Show Range Slider", 
+                      value = F
+                    )
+                  )
                 )
               )
             )

@@ -1,6 +1,18 @@
 # Utility functions
 # consts
 RCDS_DIR <- 'rcds/prices/'
+
+# Arranged in color wheel progression
+CYBER_BASE_COLORS <- c(
+    "#1bffad",   # Neon Green (cycles back towards cyan)
+    "#00fff2",  # Cyan
+    "#00b4ff",  # Electric Blue
+    "#7700ff",  # Purple
+    "#ff00f7",  # Hot Pink
+    "#ff3370"  # Neon Red
+)
+
+MAX_COLOR_DIFF <- .1
 # end consts
 
 ################################################################## Copied from stkVal
@@ -262,4 +274,115 @@ genSlctGrps <- function(DF, GRP_COL, SLCT_COL, GRP_LVLS, SLCT_LVLS, GRP_NAME) {
     { stats::setNames(.[[slct_colName]], .[[slct_colName]]) } %>%
     # Split the named vector into a list based on the ordered factor 'grp'
     base::split(df$grp)
+}
+
+# Convert RGB to hex color
+rgb2hex <- function(r, g, b) {
+    sprintf("#%02X%02X%02X", round(r * 255), round(g * 255), round(b * 255))
+}
+
+# Function to get color from wheel based on percentage
+# Subtract small epsilon to ensure 100% maps to last color
+color_len <- length(CYBER_BASE_COLORS) - 1.000001
+
+# returns a vector of RGB values
+getCyberColor <- function(pct) {
+    # Map percentage to color index (0% -> 1, 100% -> n_colors)
+    color_pos <- 1 + (pct * color_len)
+    
+    # Get the two neighboring colors
+    lower_idx <- floor(color_pos)
+    upper_idx <- ceiling(color_pos)
+    
+    # Calculate mix ratio between the two colors
+    mix_ratio <- color_pos - lower_idx
+    
+    # Get RGB values for both colors
+    rgb_lower <- col2rgb(CYBER_BASE_COLORS[lower_idx]) / 255
+    rgb_upper <- col2rgb(CYBER_BASE_COLORS[upper_idx]) / 255
+    
+    # Interpolate between colors
+    rgb_lower * (1 - mix_ratio) + rgb_upper * mix_ratio
+}
+
+# color generation function
+genCyberColors <- function(df) {
+    # Start with root nodes (empty parent)
+    df <- df %>%
+        mutate(lvl = if_else(parent == "", 0L, NA_integer_))
+    
+    # Process nodes until all levels are assigned
+    while(any(is.na(df$lvl))) {
+      df <- df %>%
+        mutate(
+            # Find nodes whose parents have levels assigned
+            lvl_parent = lvl[match(parent, id)],
+
+            # Assign level to nodes whose parents have levels
+            lvl = if_else(
+                is.na(lvl) 
+                & !is.na(lvl_parent),
+                lvl_parent + 1,
+                lvl
+            )
+        )
+    }
+    
+    # Calculate percentage within each level
+    df <- df %>%
+        group_by(parent) %>%
+        mutate(pctg = val / sum(val)) %>%
+        ungroup()
+
+    # Generate colors with cyber theme
+    max_level <- max(df$lvl)
+
+    # Store final adjusted colors
+    node_colors <- list()
+    
+    # Process nodes level by level
+    for (current_level in 0:max_level) {
+        # Get nodes at current level
+        level_nodes <- filter(df, lvl == current_level)
+        
+        for (i in 1:nrow(level_nodes)) {
+            node <- level_nodes[i, ]
+            
+            # Get base color from wheel
+            rgb_node <- getCyberColor(node$pctg)
+            rgb_parent <- node_colors[[node$parent]]
+
+            node_colors[[node$id]] <- (
+              if (node$lvl <= 1) rgb_node
+              # Blend with parent's adjusted color
+              else rgb_parent + (rgb_node - rgb_parent) * MAX_COLOR_DIFF * ((node$lvl - 1) / (max_level - 1))
+            ) * node$pctg
+        }
+    }
+
+    mapply(
+      function(lvl, id) {
+        rgb_adjed <- node_colors[[id]] *
+          # Apply adjustments
+          # Modify the color based on level
+          # Create a slightly glowing effect by adjusting saturation
+          # Increase saturation with depth
+          (1 - MAX_COLOR_DIFF) + (lvl / max_level) * MAX_COLOR_DIFF
+        
+        # Add a slight glow effect by boosting the dominant channel
+        max_channel <- which.max(rgb_adjed)
+        rgb_adjed[max_channel] <- min(1, rgb_adjed[max_channel] * 1.2)
+        
+        # Always return rgba format since we're using alpha
+        sprintf(
+          "rgba(%d, %d, %d, %f)", 
+          round(rgb_adjed[1] * 255),
+          round(rgb_adjed[2] * 255),
+          round(rgb_adjed[3] * 255),
+          # Make portfolio level (level 0) hollow by setting alpha to 0
+          lvl / max_level
+        )
+      }, 
+      df$lvl, df$id
+    )
 }

@@ -32,7 +32,8 @@ dataInitServer <- function(id) {
             
             # if weekend, and was updated friday or later
             cd <- Sys.Date()
-            end_date <- reactiveVal(cd)
+            # end date is set on init and will not change after, so no need for reactive val
+            #end_date <- reactiveVal(cd)
             msg <- NULL
 
             if (
@@ -49,7 +50,7 @@ dataInitServer <- function(id) {
 
             if (!is.null(msg)) {
                 message(msg)
-                return(end_date)
+                return(last_initDate)
             }
 
             message("Data Initialization Module: Session started, beginning data initialization...")
@@ -626,7 +627,7 @@ dataInitServer <- function(id) {
                 }
             ) # End withProgress
 
-            end_date
+            cd
         }
     ) # End moduleServer
 }

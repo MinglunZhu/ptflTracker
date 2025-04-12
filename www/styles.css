@@ -545,3 +545,44 @@ which prevents position fixed from working as intended */
   color: #aaaaaa !important; /* Light grey for details */
 }
 /* end progress bar */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* holdings plot */
+[id^="hldgs-"].js-plotly-plot {
+  box-shadow: 0 0 20px rgba(0, 255, 242, 0.2);
+  transition: box-shadow 0.3s ease;
+}
+
+#fundsPie.js-plotly-plot:hover, 
+[id^="hldgs-"].js-plotly-plot:hover { box-shadow: 0 0 30px rgba(0, 255, 242, 0.3); }
+/* end holdings plot */

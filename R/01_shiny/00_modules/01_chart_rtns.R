@@ -30,24 +30,18 @@ rtnsUI_plot <- function(id) {
 
 # Server Function for the Returns Chart Module
 rtnsServer <- function(
-    id, end_date_rv, selectedChart_rv, selectedSrcs_rv, selectedCtgs_rv, selectedFunds_rv, selectedUas_rv, inclCash_rv, showLegend_rv,
-    disableIpts, enableIpts
+    id, end_date, selectedChart_rv, selectedSrcs_rv, selectedCtgs_rv, selectedFunds_rv, selectedUas_rv, inclCash_rv, showLegend_rv,
+    showRangeSldr_rv, disableIpts, enableIpts
 ) {
     moduleServer(
         id, 
         function(input, output, session) {
             ns <- session$ns
 
-            # Observe changes to end_date_rv and update the slider max
-            observeEvent(
-                end_date_rv(), 
-                {
-                    message("Updating slider max to: ", end_date_rv())
-                    updateSliderInput(
-                        session, "selectedDate",
-                        max = end_date_rv()
-                    )
-                }
+            message("Updating slider max to: ", end_date)
+            updateSliderInput(
+                session, "selectedDate",
+                max = end_date
             )
 
             di <- function() {
@@ -227,7 +221,7 @@ rtnsServer <- function(
                 if (x_sd > start_date) {
                     # it does matter if we isolate because end date would only be set
                     # at initialization.
-                    x_ed <- end_date_rv()
+                    x_ed <- end_date
 
                     range_x <- c(x_sd, x_ed)
 
@@ -267,6 +261,7 @@ rtnsServer <- function(
                         y = ~rtn,
                         color = ~istmt_legend,
                         linetype = ~type,
+
                         #legendrank = ~rank,
                         text = ~paste0("<b>", istmt, "</b>"), # Bold name
                         #name = ~istmt_nbred,
@@ -290,7 +285,67 @@ rtnsServer <- function(
                             title = "Date",
                             gridcolor = '#444',
                             color = '#eee',
-                            range = range_x
+                            range = range_x,
+                            rangeslider = list(visible = showRangeSldr_rv() %>% isolate() %||% T),
+                            rangeselector = list(
+                                visible = showRangeSldr_rv() %>% isolate() %||% T, # Set initial state
+                                buttons = list(
+                                    list(
+                                        step = "month",
+                                        count = 1, 
+                                        label = "1m", 
+                                        stepmode = "backward"
+                                    ),
+                                    list(
+                                        step = "month",
+                                        count = 3, 
+                                        label = "3m", 
+                                        stepmode = "backward"
+                                    ),
+                                    list(
+                                        step = "month",
+                                        count = 6, 
+                                        label = "6m", 
+                                        stepmode = "backward"
+                                    ),
+                                    list(
+                                        step = "year",
+                                        count = 1, 
+                                        label = "YTD", 
+                                        stepmode = "todate"
+                                    ),
+                                    list(
+                                        step = "year",
+                                        count = 1, 
+                                        label = "1y", 
+                                        stepmode = "backward"
+                                    ),
+                                    list(
+                                        step = "year",
+                                        count = 3, 
+                                        label = "3y", 
+                                        stepmode = "backward"
+                                    ),
+                                    list(
+                                        step = "year",
+                                        count = 5, 
+                                        label = "5y", 
+                                        stepmode = "backward"
+                                    ),
+                                    list(
+                                        step = "year",
+                                        count = 10, 
+                                        label = "10y", 
+                                        stepmode = "backward"
+                                    ),
+                                    list(
+                                        step = "all",
+                                        label = "All"
+                                    )
+                                ),
+                                bgcolor = "#222",
+                                font = list(color = '#eee')
+                            )
                         ),
                         yaxis = list(
                             title = "Cumulative Return",
@@ -330,6 +385,20 @@ rtnsServer <- function(
             observeEvent(
                 showLegend_rv(), 
                 { plotlyProxyInvoke( plot_proxy, "relayout", list(showlegend = showLegend_rv()) ) },
+                ignoreInit = T
+            )
+
+            observeEvent(
+                showRangeSldr_rv(), 
+                { 
+                    plotlyProxyInvoke( 
+                        plot_proxy, "relayout", 
+                        list(
+                            "xaxis.rangeslider.visible" = showRangeSldr_rv(),
+                            "xaxis.rangeselector.visible" = showRangeSldr_rv()
+                        ) 
+                    ) 
+                },
                 ignoreInit = T
             )
         }

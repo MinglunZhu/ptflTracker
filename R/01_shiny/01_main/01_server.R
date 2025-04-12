@@ -39,17 +39,22 @@ app_server <- function(input, output, session) {
   # Ensure this runs once per session start within the module server
 
   # --- Call the Data Loader Module ---
-  end_date_rv <- dataInitServer("dataInit")
+  end_date <- dataInitServer("dataInit")
   # This returns a list of vars: data$status, data$rtns_df, etc.
 
   # init settings after data init, but before plotting
   # Update showLegend based on orientation when app starts
   observeEvent(
-    input$showLegend_orientation,
+    input$isLandscape,
     {
       updateCheckboxInput(
         session, "showLegend",
-        value = input$showLegend_orientation
+        value = input$isLandscape
+      )
+
+      updateCheckboxInput(
+        session, "showRangeSldr",
+        value = !input$isLandscape
       )
     }
   )
@@ -269,14 +274,14 @@ app_server <- function(input, output, session) {
   }
 
   rtnsServer(
-    'rtns', end_date_rv, reactive(input$selected_chart), reactive(input$selectedSrcs_rtns), reactive(input$selectedCtgs_rtns),
+    'rtns', end_date, reactive(input$selected_chart), reactive(input$selectedSrcs_rtns), reactive(input$selectedCtgs_rtns),
     reactive(input$selectedFunds_rtns), reactive(input$selectedUas_rtns), reactive(input$inclCash), reactive(input$showLegend),
-    disableIpts, enableIpts
+    reactive(input$showRangeSldr), disableIpts, enableIpts
   )
 
   hldgsServer(
-    'hldgs', end_date_rv, reactive(input$selected_chart), reactive(input$selectedFunds_hldgs), reactive(input$inclCash),
-    reactive(input$showLegend), disableIpts, enableIpts
+    'hldgs', end_date, reactive(input$selected_chart), reactive(input$selectedFunds_hldgs), reactive(input$inclCash),
+    disableIpts, enableIpts
   )
 
   # Reactive val for filtering tickers breakdown by a fund click (NULL = overall)

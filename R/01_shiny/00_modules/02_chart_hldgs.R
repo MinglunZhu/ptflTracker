@@ -52,24 +52,18 @@ hldgsUI_plot <- function(id) {
 
 # Server Function for the Returns Chart Module
 hldgsServer <- function(
-    id, end_date_rv, selectedChart_rv, selectedFunds_rv, inclCash_rv, showLegend_rv, disableIpts, enableIpts
+    id, end_date, selectedChart_rv, selectedFunds_rv, inclCash_rv, disableIpts, enableIpts
 ) {
     moduleServer(
         id, 
         function(input, output, session) {
             ns <- session$ns
 
-            # Observe changes to end_date_rv and update the slider max
-            observeEvent(
-                end_date_rv(), 
-                {
-                    message("Updating slider max to: ", end_date_rv())
-                    updateSliderInput(
-                        session, "selectedDate",
-                        max = end_date_rv(),
-                        value = end_date_rv()
-                    )
-                }
+            message("Updating slider max to: ", end_date)
+            updateSliderInput(
+                session, "selectedDate",
+                max = end_date,
+                value = end_date
             )
 
             di <- function() {
@@ -142,33 +136,49 @@ hldgsServer <- function(
                         labels = ~lbl,
                         parents = ~parent,
                         values = ~val,
+
                         type = 'sunburst',
                         branchvalues = 'total', # Values represent the total sum of their children
-                        source = "fundsSunburst", # Changed source name
+
+                        #source = "fundsSunburst", # Changed source name
                         #customdata = ~ids, # Pass ID for click events
                         hoverinfo = 'label+percent entry+value',
+
                         marker = list(
+                            colors = genCyberColors(h),
                             line = list(
-                                color = 'rgba(0, 255, 242, 0.5)', 
-                                width = 1.5
+                                color = 'rgba(0, 255, 242, 0.3)',
+                                width = 2
                             ) # Thicker cyan lines
                         ),
                         insidetextorientation = 'radial',
-                        opacity = 0.95
+                        opacity = 0.95,
+                        textfont = list(
+                            family = "Orbitron, monospace",
+                            color = '#fff'
+                        )
                     ) %>%
                     layout(
                         title = list(
-                            text = "Daily USD Holdings Values", 
-                            font = list(color = '#00fff2')
+                            text = "USD Holdings Values", 
+                            font = list(
+                                color = '#00fff2',
+                                family = "Orbitron, monospace"
+                            )
                         ),
-                        paper_bgcolor = '#1a1a1a', # Darker background
-                        plot_bgcolor = '#1a1a1a',
+                        paper_bgcolor = '#111', # Darker background
+                        plot_bgcolor = '#111',
                         font = list(
-                            color = '#eee', 
-                            family = "Orbitron, sans-serif"
-                        ), # Futuristic font
-                        colorway = CYBER_COLORS # Apply cyber colors cyclically
+                            color = '#00fff2', 
+                            family = "Orbitron, monospace"
+                        ) # Futuristic font
+                        #colorway = CYBER_COLORS # Apply cyber colors cyclically
                     ) %>%
+                    # the mode bar offers download plot as png, not very useful
+                    # but we can still leave it in there
+                    # config(
+                    #     displayModeBar = FALSE  # Hide the modebar for cleaner look
+                    # ) %>%
                     onRender(sprintf(
                         "
                             function(el, x) {
