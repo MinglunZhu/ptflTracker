@@ -6,7 +6,7 @@ rtnsUI_sldr <- function(id) {
         sliderInput(
             ns("selectedDate"), "Select Rebase Date:",
             min = start_date,
-            max = runDate,
+            max = RUN_DATE,
             # default value is required
             value = start_date,
             timeFormat = "%Y-%m-%d", 
@@ -30,7 +30,8 @@ rtnsUI_plot <- function(id) {
 
 # Server Function for the Returns Chart Module
 rtnsServer <- function(
-    id, end_date_rv, selectedChart, selectedFunds_rv, selectedTkrs_rv, inclCash_rv, showLegend_rv, disableIpts, enableIpts
+    id, end_date_rv, selectedChart, selectedSrcs_rv, selectedCtgs_rv, selectedFunds_rv, selectedUas_rv, inclCash_rv, showLegend_rv,
+    disableIpts, enableIpts
 ) {
     moduleServer(
         id, 
@@ -71,7 +72,12 @@ rtnsServer <- function(
                 # we will try to always trigger slider update and use slider update to trigger rebase
                 # to avoid double update on the plot
                 rtns_df %>%
-                    filter( istmt %in% c('Overall Portfolio', NAMES_BMS, selectedFunds_rv(), selectedTkrs_rv()) ) %>%
+                    filter(
+                        istmt %in% c(
+                            'Overall Portfolio', NAMES_BMS, selectedSrcs_rv(), selectedCtgs_rv(), selectedFunds_rv(),
+                            selectedUas_rv()
+                        )
+                    ) %>%
                     select(istmt, istmt_legend, type, date, cmltvRtn_inclCash, cmltvRtn_xcluCash)
             })
 

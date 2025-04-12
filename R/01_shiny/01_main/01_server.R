@@ -57,6 +57,100 @@ app_server <- function(input, output, session) {
   # Trigger initial orientation check after everything is set up
   session$sendCustomMessage("check-orientation", list())
 
+  # update selection settings once inited
+  slctGrps <- list(
+    list(
+      suffix = "Ctgs", 
+      choices = unlist(openCtgGrps)
+    ),
+    list(
+      suffix = "Funds", 
+      choices = unlist(openFundGrps)
+    ),
+    list(
+      suffix = "Uas", 
+      choices = unlist(openUaGrps)
+    )
+  )
+
+  observeEvent(
+      input$inclClosed,
+      {
+          ## Update the variables first thing
+          if (input$inclClosed) {
+            # sources
+            avlbSrcs <- uniqueSrcs_sorted # Use all sources
+
+            cgs <- uniqueCtgGrps # Use all categories
+            fgs <- uniqueFundGrps # Use all funds
+            uags <- uniqueUaGrps # Use all tickers
+          } else {
+            avlbSrcs <- openSrcs_sorted   # Use only open sources
+
+            cgs <- openCtgGrps # Use only open categories
+            fgs <- openFundGrps # Use only open funds
+            uags <- openUaGrps # Use only open tickers
+          }
+
+          slctGrps[[1]]$grps <<- cgs
+          slctGrps[[2]]$grps <<- fgs
+          slctGrps[[3]]$grps <<- uags
+
+          slctGrps[[1]]$choices <<- unlist(cgs)
+          slctGrps[[2]]$choices <<- unlist(fgs)
+          slctGrps[[3]]$choices <<- unlist(uags)
+
+          updateCheckboxGroupInput(
+              session, "selectedSrcs_rtns",
+              choices = avlbSrcs,
+              # Preserve current selection if items still exist in the new choices
+              selected = intersect(input$selectedSrcs_rtns, avlbSrcs)
+          )
+
+          for (g in slctGrps) {
+            id <- paste0("selected", g$suffix, "_rtns")
+
+            updateSelectizeInput(
+                session, id,
+                choices = g$grps,
+                # Preserve current selection if items still exist in the new choices
+                selected = intersect(input[[id]], g$choices)
+                # server = TRUE # Consider if list becomes extremely large
+            )
+          }
+      },
+      # run once data is inited
+      # because at UI level the data is not ready
+      #ignoreInit = T # Prevent running on startup
+  )
+
+  # Create observers using a loop (lapply)
+  for (idx in seq_along(slctGrps)) {
+    local({
+      # create local copies
+      i_crt <- idx
+      s_crt <- slctGrps[[idx]]$suffix
+      input_id <- paste0("selected", s_crt, "_rtns")
+
+      observeEvent(
+        # the input id is generated at execution, not at definition,
+        # and the execution time and definition time are different
+        # so it will point to the last idx and bind to the last button
+        # without the local copy
+        input[[paste0("tglAll", s_crt, "_btn")]],
+        {
+          a <- slctGrps[[i_crt]]$choices
+
+          updateSelectizeInput(
+              session, input_id, # Use the input_id to avoid code duplication
+              selected = if (length(input[[input_id]]) < length(a)) a
+              else character(0)
+          )
+        }
+      )
+    })
+  }
+
   disableIpts <- function() {
     # need asis because when passed to module, the module will add namespace for the module
     # and we don't want that because these are not module inputs
@@ -70,11 +164,20 @@ app_server <- function(input, output, session) {
       'selectedFunds_hldgs',
       asis = T
     )
+
     disable(
-      'selectedDate_hldgs',
+      "selectedSrcs_rtns",
       asis = T
     )
 
+    disable(
+      'tglAllCtgs_btn',
+      asis = T
+    )
+    disable(
+      "selectedCtgs_rtns",
+      asis = T
+    )
 
     disable(
       'tglAllFunds_btn',
@@ -86,11 +189,11 @@ app_server <- function(input, output, session) {
     )
 
     disable(
-      'tglAllTkrs_btn',
+      'tglAllUas_btn',
       asis = T
     )
     disable(
-      "selectedTkrs_rtns",
+      "selectedUas_rtns",
       asis = T
     )
 
@@ -115,11 +218,21 @@ app_server <- function(input, output, session) {
     )
 
     enable(
-      "selectedFunds_rtns",
+      "selectedFunds_hldgs",
+      asis = T
+    )
+
+    enable(
+      "selectedSrcs_rtns",
+      asis = T
+    )
+
+    enable(
+      'tglAllCtgs_btn',
       asis = T
     )
     enable(
-      "selectedDate_hldgs",
+      "selectedCtgs_rtns",
       asis = T
     )
 
@@ -128,16 +241,16 @@ app_server <- function(input, output, session) {
       asis = T
     )
     enable(
-      'selectedFunds_hldgs',
+      'selectedFunds_rtns',
       asis = T
     )
 
     enable(
-      'tglAllTkrs_btn',
+      'tglAllUas_btn',
       asis = T
     )
     enable(
-      "selectedTkrs_rtns",
+      "selectedUas_rtns",
       asis = T
     )
 
@@ -156,13 +269,14 @@ app_server <- function(input, output, session) {
   }
 
   rtnsServer(
-    'rtns', end_date_rv, input$selected_chart, reactive(input$selectedFunds_rtns), reactive(input$selectedTkrs_rtns),
-    reactive(input$inclCash), reactive(input$showLegend), disableIpts, enableIpts
+    'rtns', end_date_rv, input$selected_chart, reactive(input$selectedSrcs_rtns), reactive(input$selectedCtgs_rtns),
+    reactive(input$selectedFunds_rtns), reactive(input$selectedUas_rtns), reactive(input$inclCash), reactive(input$showLegend),
+    disableIpts, enableIpts
   )
 
   hldgsServer(
-    'hldgs', end_date_rv, input$selected_chart, reactive(input$selectedFunds_hldgs), reactive(input$selectedDate_hldgs),
-    reactive(input$inclCash), reactive(input$showLegend), disableIpts, enableIpts
+    'hldgs', end_date_rv, input$selected_chart, reactive(input$selectedFunds_hldgs), reactive(input$inclCash),
+    reactive(input$showLegend), disableIpts, enableIpts
   )
 
   # Reactive val for filtering tickers breakdown by a fund click (NULL = overall)
@@ -255,70 +369,6 @@ app_server <- function(input, output, session) {
     # # Calculate tkr values for the selected date
     # getHldgVals(cached_vals)
   })
-
-  
-
-  availableFunds <- openFunds_sorted
-  availableTkrs <- unlist(openTkrGrps)
-
-  observeEvent(
-      input$inclClosed,
-      {
-          ## Update the variables first thing
-          # Update Fund Choices based on checkbox
-          availableFunds <<- if (input$inclClosed) uniqueFunds_sorted # Use all funds
-          else openFunds_sorted   # Use only open funds
-
-          # Update Ticker Choices based on checkbox
-          t <- if (input$inclClosed) uniqueTkrGrps # Use all tickers, grouped
-          else openTkrGrps   # Use only open tickers, grouped
-          availableTkrs <<- unlist(t)
-
-          updateCheckboxGroupInput(
-              session, "selectedFunds_rtns",
-              choices = availableFunds,
-              # Preserve current selection if items still exist in the new choices
-              selected = intersect(input$selectedFunds_rtns, availableFunds)
-          )
-
-          updateSelectizeInput(
-              session, "selectedTkrs_rtns",
-              choices = t,
-              # Preserve current selection if items still exist in the new choices
-              selected = intersect(input$selectedTkrs_rtns, availableTkrs)
-              # server = TRUE # Consider if list becomes extremely large
-          )
-      },
-      # run once data is inited
-      # because at UI level the data is not ready
-      #ignoreInit = T # Prevent running on startup
-  )
-
-  observeEvent(
-      input$tglAllFunds_btn,
-      {
-          f <- availableFunds
-
-          updateCheckboxGroupInput(
-              session, "selectedFunds_rtns",
-              selected = if (length(input$selectedFunds_rtns) < length(f)) f
-              else character(0)
-          )
-      }
-  )
-
-  observeEvent(
-      input$tglAllTkrs_btn,
-      {
-          t <- availableTkrs
-
-          updateSelectizeInput(
-              session, "selectedTkrs_rtns",
-              selected = if (length(input$selectedTkrs_rtns) < length(t)) t
-              else character(0)
-          )
-      }
-  )
 
   hidePageSpinner()
 }

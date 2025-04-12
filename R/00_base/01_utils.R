@@ -77,6 +77,28 @@ reformatTkr <- function(t) {
 }
 ################################################################## End stkVal
 
+genSlctCol <- function(VAR_NAME, NAME) {
+  tags$div(
+    class = "settings-column",
+    tags$li(actionButton(paste0("tglAll", VAR_NAME, "_btn"), paste("Toggle All", NAME))),
+    tags$li(
+      selectizeInput(
+        paste0("selected", VAR_NAME, "_rtns"), paste("Select", NAME, "(Rebased):"),
+        choices = list(),
+        selected = character(0),
+        multiple = TRUE,
+        options = list(
+          placeholder = paste('Type or click to select', tolower(NAME), '...'),
+          plugins = list('remove_button')
+          # Consider 'maxItems' if you want to limit selections
+          # maxItems = 10
+          #, onInitialize = I('function() { this.setValue(""); }') # Ensure placeholder shows
+        )
+      )
+    )
+  )
+}
+
 incProg <- function(DETAILS) {
     if (missing(DETAILS)) {
         incProgress(amount = progStepAmt)
@@ -97,7 +119,7 @@ read_xts <- function(fp) {
 }
 
 # Add a function to safely download symbols with retries:
-safeGetSymbols <- function(TKR, END_DATE = runDate, MAX_ATTEMPTS = 3, DELAY = 15, TIMEOUT = 120) {
+safeGetSymbols <- function(TKR, END_DATE = RUN_DATE, MAX_ATTEMPTS = 3, DELAY = 15, TIMEOUT = 120) {
   fp <- paste0(RCDS_DIR, TKR, '.csv')
   
   attempt <- 1
@@ -203,43 +225,41 @@ asFctrCol <- function(DF, COL, LVLS) {
     )
 }
 
-getTkrGrps <- function(DF, TKR_COL) {
-  # Capture the TKR_COL expression without evaluating it
-  tkr_expr <- rlang::enquo(TKR_COL)
-  # Get the string name of the column for use where needed
-  tkr_colName <- rlang::quo_name(tkr_expr)
+genSlctGrps <- function(DF, GRP_COL, SLCT_COL, GRP_LVLS, SLCT_LVLS, GRP_NAME) {
+  # Capture expressions without evaluating
+  grp_expr <- rlang::enquo(GRP_COL)
+  slct_expr <- rlang::enquo(SLCT_COL)
+
+  # Get string names for standard evaluation where needed
+  #grp_colName <- rlang::quo_name(grp_expr)
+  slct_colName <- rlang::quo_name(slct_expr)
+
+  # Dynamic label for items in multiple groups
+  multiple_label <- paste("Multiple", GRP_NAME)
 
   df <- DF %>%
     ungroup() %>%
-    # Use only relevant columns and distinct ticker/fund pairs
-    distinct(fund, !!tkr_expr) %>%
-    # Count funds per ticker
+    # Use only relevant columns and distinct pairs
+    distinct(!!grp_expr, !!slct_expr) %>%
+    # Count groups per selection item
     add_count(
-      !!tkr_expr,
-      name = "fundCnt"
+      !!slct_expr,
+      name = "grpCnt"
     ) %>%
-    # Assign group name
-    mutate(grp = if_else(fundCnt > 1, "Multiple Funds", fund)) %>%
-    # Keep only one row per ticker (the group name is now consistent for multi-fund tickers)
-    distinct(grp, !!tkr_expr) %>%
-    asFctrCol(grp, c(uniqueFunds_sorted, "Multiple Funds")) %>%
-    asFctrCol(!!tkr_expr, uniqueTkrs_sorted) %>%
-    arrange(grp, !!tkr_expr)
+    # Assign group name: use the dynamic label if count > 1, else the group column value
+    mutate(grp = if_else(grpCnt > 1, multiple_label, as.character(!!grp_expr))) %>%
+    # Keep only one row per selection item (group name is now consistent)
+    distinct(grp, !!slct_expr) %>%
+    # Apply factor levels for sorting
+    asFctrCol(grp, c(GRP_LVLS, multiple_label)) %>%
+    asFctrCol(!!slct_expr, SLCT_LVLS) %>%
+    # Arrange based on the factor levels
+    arrange(grp, !!slct_expr)
 
   df %>%
-    # Use standard evaluation [[ ]] with the *string name* of the column
-    # Use the ticker column for both the label (name) and the value
-    { stats::setNames(.[[tkr_colName]], .[[tkr_colName]]) } %>% 
+    # Use standard evaluation [[ ]] with the *string name* of the selection column
+    # Use the selection column for both the label (name) and the value
+    { stats::setNames(.[[slct_colName]], .[[slct_colName]]) } %>%
     # Split the named vector into a list based on the ordered factor 'grp'
-    base::split(df$grp)   
-}
-
-sumPtflVal <- function(DF) {
-  DF %>%
-    group_by(date) %>%
-    summarise(val = sum(val)) %>%
-    mutate(
-        id = 'Portfolio',
-        parent = ''
-    )
+    base::split(df$grp)
 }

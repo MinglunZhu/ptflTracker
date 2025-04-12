@@ -68,38 +68,23 @@ app_ui <- tagList(
             # Container for the three columns
             tags$div(
               class = "settings-columns",
-              # Column 1: Funds
+              # Column 1: sources
               tags$div(
                 class = "settings-column",
-                tags$li(actionButton("tglAllFunds_btn", "Toggle All Funds")),
                 tags$li(
                   checkboxGroupInput(
-                    "selectedFunds_rtns", "Select Funds (Rebased):", 
+                    "selectedSrcs_rtns", "Select Sources (Rebased):", 
                     choices = character(0),
                     selected = character(0)
                   )
                 )
               ),
-              # Column 2: Tickers
-              tags$div(
-                class = "settings-column",
-                tags$li(actionButton("tglAllTkrs_btn", "Toggle All Tickers")),
-                tags$li(
-                  selectizeInput(
-                    "selectedTkrs_rtns", "Select Tickers (Rebased):", 
-                    choices = list(),
-                    selected = character(0),   # Start with nothing selected
-                    multiple = T,   # Allow selecting multiple tickers
-                    options = list(
-                      placeholder = 'Type or click to select tickers...',
-                      plugins = list('remove_button') # Adds little 'x' to remove selections
-                      # Consider 'maxItems' if you want to limit selections
-                      # maxItems = 10 
-                      #, onInitialize = I('function() { this.setValue(""); }') # Ensure placeholder shows
-                    )
-                  )
-                )
-              ),
+              # col 2 : ctgs
+              genSlctCol("Ctgs", "Categories"),
+              # col 3 : funds
+              genSlctCol("Funds", "Funds"),
+              # col 4 : tickers
+              genSlctCol("Uas", "Underlying Assets"),
               # Column 3: Other Settings
               tags$div(
                 class = "settings-column",

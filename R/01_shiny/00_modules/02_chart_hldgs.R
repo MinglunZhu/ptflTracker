@@ -14,8 +14,8 @@ hldgsUI_sldr <- function(id) {
         sliderInput(
             ns("selectedDate"), "Select Date:",
             min = start_date,
-            max = runDate,
-            value = runDate,
+            max = RUN_DATE,
+            value = RUN_DATE,
             timeFormat = "%Y-%m-%d", 
             width = "100%",
             animate = animationOptions(
@@ -52,7 +52,7 @@ hldgsUI_plot <- function(id) {
 
 # Server Function for the Returns Chart Module
 hldgsServer <- function(
-    id, end_date_rv, selectedChart, selectedFunds_rv, selectedTkrs_rv, inclCash_rv, showLegend_rv, disableIpts, enableIpts
+    id, end_date_rv, selectedChart, selectedFunds_rv, inclCash_rv, showLegend_rv, disableIpts, enableIpts
 ) {
     moduleServer(
         id, 
@@ -66,7 +66,8 @@ hldgsServer <- function(
                     message("Updating slider max to: ", end_date_rv())
                     updateSliderInput(
                         session, "selectedDate",
-                        max = end_date_rv()
+                        max = end_date_rv(),
+                        value = end_date_rv()
                     )
                 }
             )
@@ -87,6 +88,8 @@ hldgsServer <- function(
             
             # needed for reactive context which caches the results
             selectedHldgVals_raw <- reactive({
+                req(selectedChart == 'Holdings')
+
                 di()
 
                 filter(
@@ -130,7 +133,7 @@ hldgsServer <- function(
                 h %>%
                     plot_ly(
                         ids = ~id,
-                        labels = ~id,
+                        labels = ~lbl,
                         parents = ~parent,
                         values = ~val,
                         type = 'sunburst',

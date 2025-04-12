@@ -33,19 +33,22 @@ dataInitServer <- function(id) {
             # if weekend, and was updated friday or later
             cd <- Sys.Date()
             end_date <- reactiveVal(cd)
+            msg <- NULL
 
             if (
-                DEBUG
-                | (
-                    weekdays(cd) %in% c("Saturday", "Sunday")
-                    && exists("last_initDate", envir = .GlobalEnv)
-                    && last_initDate >= cd - ((format(cd, "%u") %>% as.integer() - 5) %% 7)
-                )
+                weekdays(cd) %in% c("Saturday", "Sunday")
+                && exists("last_initDate", envir = .GlobalEnv)
+                && last_initDate >= cd - ((format(cd, "%u") %>% as.integer() - 5) %% 7)
             ) {
-                message(
-                    if (DEBUG) "Data Initialization Module: Skipping data initialization in debug mode."
-                    else paste("Data Initialization Module: Skipping data initialization on weekend. Last initialization date:", last_initDate)
-                )
+                if (!DEBUG) {
+                    msg <- paste("Data Initialization Module: Skipping data initialization on weekend. Last initialization date:", last_initDate)
+                }
+            } else if (DEBUG) {
+                msg <- paste("Data Initialization Module: Skipping data initialization on weekend. Last initialization date:", last_initDate)
+            }
+
+            if (!is.null(msg)) {
+                message(msg)
                 return(end_date)
             }
 
@@ -75,7 +78,7 @@ dataInitServer <- function(id) {
                             prices_xts <- NULL
 
                             message("Future: Downloading prices...")
-                            incProg("Downloading Prices...")
+                            incProg("Downloading prices...")
 
                             #even passing a vector to getSybmols
                             #it still downloads one by one due to yahoo's API only support 1 stock
@@ -135,7 +138,7 @@ dataInitServer <- function(id) {
                             #download exchange rates
                             message("Future: Downloading FX rates...")
                             # ... FX download logic ... -> xchgRates_df
-                            incProg("Downloading FX Rates...")
+                            incProg("Downloading FX rates...")
 
                             # download exchange rates and store in a dataframe in 3 columns date, cur, xchgRate_usd
                             # 3. Create a full grid of all dates and all currencies
@@ -252,42 +255,36 @@ dataInitServer <- function(id) {
                                 mutate(price_usd = price / xchgRate_usd2Lc)
 
                             message("Future: Calculating values...")
+                            incProg("Calculating values...")
 
                             # 1. Create a complete grid of all dates and tickers in the subset
-                            vals_df <- expand_grid(
-                                fund = uniqueFunds,
-                                date = all_dates,
-                                # Get unique tickers from the input trades
-                                tkr = unique_tickers
-                            ) %>%
+                            vals_df <-trades_inited_df %>%
+                                distinct(src, ctg, fund, yahoo_tkr) %>%
+                                tidyr::crossing(date = all_dates) %>%
                                 # 3. Join trades onto the grid and calculate cumulative holdings
                                 left_join(
                                     # 2. Prepare trades data: select relevant columns and sum units for same day/ticker
                                     trades_inited_df %>%
-                                        group_by(fund, date, yahoo_tkr) %>%
+                                        group_by(src, ctg, fund, date, yahoo_tkr) %>%
                                         summarise(
                                             adj_unitCnt = sum(
-                                                adj_unitCnt,
+                                                adj_unitCnt, 
                                                 na.rm = T
                                             ),
                                             .groups = 'drop'
-                                        ),
-                                    by = c(
-                                        'fund', "date",
-                                        'tkr' = "yahoo_tkr"
-                                    )
+                                        ) %>%
+                                        filter(adj_unitCnt != 0),
+                                    by = c('src', 'ctg', 'fund', "date", "yahoo_tkr")
                                 ) %>%
                                 # Replace NA trade units with 0
                                 replace(., is.na(.), 0) %>%
+                                rename(tkr = yahoo_tkr) %>%
                                 #remove empty fund ticker combo
-                                group_by(fund, tkr) %>%
+                                group_by(src, ctg, fund, tkr) %>%
                                 filter(abs(adj_unitCnt) %>% sum() > 0) %>%
                                 # Arrange and calculate cumulative sum within each ticker group
-                                arrange(fund, tkr, date) %>%
-                                group_by(fund, tkr) %>%
+                                arrange(date) %>%
                                 mutate(cmltvUnitCnt = cumsum(adj_unitCnt) %>% round(maxDecimals)) %>%
-                                #ungroup() %>%
-                                #select(date, yahoo_tkr, holding_qty)
                                 # 4. Join holdings with daily prices
                                 left_join(
                                     prices_daily_df,
@@ -295,22 +292,20 @@ dataInitServer <- function(id) {
                                 ) %>%
                                 # Calculate market value for each holding on each day
                                 # If price (yahoo_p) is NA, the value will be NA
-                                mutate(val = cmltvUnitCnt * price_usd)
+                                mutate(val = cmltvUnitCnt * price_usd) %>%
+                                ungroup() %>%
+                                select(src, ctg, fund, tkr, date, cmltvUnitCnt, val) 
 
                             message("Future: Calculating returns...")
 
-                            tkrs_df <- vals_df %>%
-                                #yahoo_tkr needed for trades df
-                                rename(yahoo_tkr = tkr) %>%
-                                summariseValCfBy(yahoo_tkr) %>%
-                                mutate(type = 'Ticker')
-                                # ungroup() %>%
-                                # arrange(date) # Ensure dates are sorted
-
-                            rtns_df <- tkrs_df %>%
+                            funds_df <- vals_df %>%
+                                summariseValCfBy(fund)
+                                
+                            rtns_df <- funds_df %>%
+                                mutate(type = 'Fund') %>%
                                 bind_rows(
                                     #append overall ptfl
-                                    tkrs_df %>%
+                                    funds_df %>%
                                         group_by(date) %>%
                                         summarise(
                                             val = sum(val),
@@ -320,13 +315,25 @@ dataInitServer <- function(id) {
                                             istmt = 'Overall Portfolio',
                                             type = 'Portfolio / Benchmark'
                                         ),
-                                    #append funds
-                                    #only funds that are not the same as the ticker
-                                    #because those are going to be aggregated in tickers
+                                    # append srcs
                                     vals_df %>%
-                                        filter(fund %in% uniqueFunds) %>%
-                                        summariseValCfBy(fund) %>%
-                                        mutate(type = 'Fund')
+                                        summariseValCfBy(src) %>%
+                                        mutate(type = 'Source'),
+                                    # append ctgs
+                                    vals_df %>%
+                                        summariseValCfBy(ctg) %>%
+                                        mutate(type = 'Category'),
+                                    #append tkrs
+                                    #only tkrs that are not already included in funds
+                                    #because those are going to be included in funds
+                                    vals_df %>%
+                                        filter(!(tkr %in% trades$fund)) %>%
+                                        # yahoo_tkr needed for trades df
+                                        rename(yahoo_tkr = tkr) %>%
+                                        summariseValCfBy(yahoo_tkr) %>%
+                                        mutate(type = 'Underlying Asset')
+                                        # ungroup() %>%
+                                        # arrange(date) # Ensure dates are sorted
                                 ) %>%
                                 group_by(istmt) %>%
                                 # Compute daily returns adjusted for CF:
@@ -403,49 +410,80 @@ dataInitServer <- function(id) {
                             message("Future: Calculating holdings...")
 
                             # add cash for overall portfolio only
-                            # vals_df has each tkr in each fund where tkr has units
-                            hldgs_funds_df <- bind_rows(
-                                # add each fund with portfolio as parent
-                                vals_df %>%
-                                    group_by(fund, date) %>%
-                                    summarise(
-                                        val = sum(
-                                            val,
-                                            na.rm = T
-                                        ),
-                                        .groups = 'drop'
-                                    ) %>%
-                                    mutate(parent = 'Portfolio') %>%
-                                    rename(id = fund),
+                            # vals_df has each tkr in each fund in each ctg in each src where tkr has units
+                            hldgs_srcs_df <- bind_rows(
+                                # add each src with portfolio as parent
+                                rename(
+                                    vals_df,
+                                    lbl = src
+                                ),
                                 # add cash for portfolio
                                 rtns_df %>%
                                     filter(istmt == 'Overall Portfolio') %>%
                                     select(istmt, date, val_cash) %>%
                                     rename(val = val_cash) %>%
                                     mutate(
-                                        id = 'Cash',
-                                        parent = 'Portfolio',
+                                        lbl = 'Cash',
                                         isInclCash = T
                                     )
                             )
 
-                            hldgs_df <<- vals_df %>%
-                                rename(
-                                    parent = fund,
-                                    id = tkr
-                                ) %>%
+                            # lbl parent val
+                            hldgs_df <<- hldgs_srcs_df %>%
+                                mutate(parent = 'Portfolio') %>%
                                 bind_rows(
-                                    # add funds
-                                    hldgs_funds_df,
                                     # add portfolio with cash
-                                    hldgs_funds_df %>%
-                                        sumPtflVal() %>%
-                                        mutate(isInclCash = T),
-                                    # without cash
-                                    hldgs_funds_df %>%
-                                        filter(id != 'Cash') %>%
-                                        sumPtflVal() %>%
-                                        mutate(isInclCash = F)
+                                    mutate(
+                                        hldgs_srcs_df,
+                                        isInclCash = T
+                                    ) %>%
+                                        bind_rows(
+                                            # without cash
+                                            hldgs_srcs_df %>%
+                                                filter(lbl != 'Cash') %>%
+                                                mutate(isInclCash = F)
+                                        ) %>%
+                                        mutate(
+                                            lbl = 'Portfolio',
+                                            parent = ''
+                                        ),
+                                    # add funds
+                                    rename(
+                                        vals_df,
+                                        lbl = fund,
+                                        parent = ctg
+                                    )
+                                ) %>%
+                                mutate(id = lbl) %>%
+                                bind_rows(
+                                    # add ctgs
+                                    rename(
+                                        vals_df,
+                                        lbl = ctg,
+                                        parent = src
+                                    ) %>%
+                                        # add underlying assets
+                                        # only tkrs that are not the same as the fund
+                                        # if a tkr is the same as one of the funds, but not the same as its own fund
+                                        # then we still want to show it
+                                        bind_rows(
+                                            vals_df %>%
+                                                filter(tkr != fund) %>%
+                                                rename(
+                                                    lbl = tkr,
+                                                    parent = fund
+                                                )
+                                        ) %>%
+                                        mutate(id = paste(parent, lbl))
+                                ) %>%
+                                filter(val > 0) %>%
+                                group_by(id, parent, lbl, date) %>%
+                                summarise(
+                                    val = sum(
+                                        val,
+                                        na.rm = T
+                                    ),
+                                    .groups = 'drop'
                                 )
 
                             # calculate cash val dynamically depending on the selected fund
@@ -469,7 +507,7 @@ dataInitServer <- function(id) {
                                 # Ensure we only use days where a return could be calculated
                                 filter(rtn_xcluCash != 0) %>%
                                 # Group by instrument to calculate per-instrument metrics
-                                group_by(istmt) %>%
+                                group_by(istmt, type) %>%
                                 summarise(
                                     # Calculate the sum of log growth factors (more stable than product)
                                     # Add a very small number to handle potential returns of exactly -1 (100% loss)
@@ -480,73 +518,95 @@ dataInitServer <- function(id) {
                                 ) %>%
                                 # Annualize using 252 trading days
                                 mutate(rtn_anlzed = exp(log_growth_factors / dayCnt)^252 - 1) %>%
-                                select(istmt, rtn_anlzed)
+                                select(istmt, type, rtn_anlzed)
 
                             # Create the ordered vector according to the specified requirements
-                            # Order the funds by annualized returns (descending), but keep "Misc." at the end
-                            uniqueFunds_sorted <<- rtns_anlzed_df %>%
-                                filter(istmt %in% uniqueFunds & istmt != "Misc.") %>%
+                            uniqueSrcs_sorted <<- rtns_anlzed_df %>%
+                                filter(type == 'Source') %>%
+                                arrange(desc(rtn_anlzed)) %>%
+                                pull(istmt)
+
+                            # Order the ctgs by annualized returns (descending), but keep "Misc." at the end
+                            uniqueCtgs_sorted <- rtns_anlzed_df %>%
+                                filter(
+                                    type == 'Category' 
+                                    & istmt != "Misc."
+                                ) %>%
                                 arrange(desc(rtn_anlzed)) %>%
                                 pull(istmt) %>%
                                 c("Misc.")
 
-                            # Order the tickers by annualized returns (descending)
-                            # needed by util functions
-                            uniqueTkrs_sorted <<- rtns_anlzed_df %>%
-                                filter(istmt %in% unique_tickers) %>%
+                            uniqueFunds_sorted <- rtns_anlzed_df %>%
+                                filter(type == 'Fund') %>%
                                 arrange(desc(rtn_anlzed)) %>%
                                 pull(istmt)
 
-                            odr <- c(
-                                "Overall Portfolio",
-                                uniqueFunds_sorted,
-                                uniqueTkrs_sorted,
-                                NAMES_BMS
-                            )
+                            # Order the tickers by annualized returns (descending)
+                            # needed by util functions
+                            uniqueUas_sorted <- rtns_anlzed_df %>%
+                                filter(type == 'Underlying Asset') %>%
+                                arrange(desc(rtn_anlzed)) %>%
+                                pull(istmt)
 
                             # Join rtns_df with rtns_anlzed_df to get the annualized returns
                             rtns_df <<- rtns_df %>%
                                 left_join(
-                                    rtns_anlzed_df, 
+                                    select(rtns_anlzed_df, -type), 
                                     by = "istmt"
                                 ) %>%
                                 # Create istmt_legend with format: number. annualized return% (2 decimals) istmt
                                 mutate(
                                     istmt_legend = sprintf(
-                                        "%02d. | %.2f%% | %s",
-                                        match(istmt, odr),
+                                        "%03d. | %.2f%% | %s",
+                                        match(
+                                            istmt,
+                                            c(
+                                                "Overall Portfolio", uniqueSrcs_sorted, uniqueCtgs_sorted, uniqueFunds_sorted,
+                                                uniqueUas_sorted, NAMES_BMS
+                                            )
+                                        ),
                                         rtn_anlzed * 100,
                                         istmt
                                     )
                                 )
 
                             # Get latest holdings for each fund/ticker combination
-                            latest_hldgs <- vals_df %>%
-                                filter(date == cd) %>% # Filter for the last calculated date
-                                select(fund, tkr, cmltvUnitCnt)
+                            latest_hldgs_df <- vals_df %>%
+                                filter(
+                                    date == cd
+                                    & cmltvUnitCnt > 0
+                                ) %>% # Filter for the last calculated date
+                                distinct(src, ctg, fund, tkr)
 
-                            # Identify open funds (positive holding for the fund itself, excluding individual tickers)
-                            # This requires summarizing vals_df by fund first
-                            openFunds_sorted <<- latest_hldgs %>%
-                                group_by(fund) %>%
-                                summarise(
-                                    unitCnt = sum(
-                                        cmltvUnitCnt,
-                                        na.rm = T
-                                    ),
-                                    .groups = 'drop'
-                                ) %>%
-                                filter(unitCnt > 0) %>% # Check fund value
-                                asFctrCol(fund, uniqueFunds_sorted) %>%
-                                arrange(fund) %>%
-                                pull(fund)
+                            # Identify open source (positive holding for the source itself, excluding individual tickers)
+                            # This requires summarizing vals_df by scource first
+                            openSrcs_sorted <<- latest_hldgs_df %>%
+                                distinct(src) %>%
+                                asFctrCol(src, uniqueSrcs_sorted) %>%
+                                arrange(src) %>%
+                                pull(src)
+
+                            uniqueCtgGrps <<- genSlctGrps(vals_df, src, ctg, uniqueSrcs_sorted, uniqueCtgs_sorted, "Sources")
+                            openCtgGrps <<- genSlctGrps(latest_hldgs_df, src, ctg, uniqueSrcs_sorted, uniqueCtgs_sorted, "Sources")
+
+                            uniqueFundGrps <<- genSlctGrps(vals_df, ctg, fund, uniqueCtgs_sorted, uniqueFunds_sorted, "Categories")
+                            openFundGrps <<- genSlctGrps(latest_hldgs_df, ctg, fund, uniqueCtgs_sorted, uniqueFunds_sorted, "Categories")
 
                             # Determine fund assignments for each ticker
-                            uniqueTkrGrps <<- getTkrGrps(trades, yahoo_tkr)
+                            # only include tickers that are not the same as the fund
+                            # this basically has to be the same logic as returns
+                            rtns_tkrs <- rtns_df %>%
+                                filter(type == 'Underlying Asset') %>%
+                                pull(istmt)
+
+                            uniqueUaGrps <<- vals_df %>%
+                                filter(tkr %in% rtns_tkrs) %>%
+                                genSlctGrps(fund, tkr, uniqueFunds_sorted, uniqueUas_sorted, "Funds")
+
                             # Identify open tickers (positive holding in ANY fund)
-                            openTkrGrps <<- latest_hldgs %>%
-                                filter(cmltvUnitCnt > 0) %>%
-                                getTkrGrps(tkr)
+                            openUaGrps <<- latest_hldgs_df %>%
+                                filter(tkr %in% rtns_tkrs) %>%
+                                genSlctGrps(fund, tkr, uniqueFunds_sorted, uniqueUas_sorted, "Funds")
 
                             last_initDate <<- cd
                             message("Future: Data processing complete.")
