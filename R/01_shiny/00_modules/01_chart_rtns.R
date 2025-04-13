@@ -213,6 +213,31 @@ rtnsServer <- function(
                         return()
                 }
 
+                p <- plot_ly(
+                    df,
+                    x = ~date,
+                    y = ~rtn,
+                    color = ~istmt_legend,
+                    linetype = ~type,
+
+                    #legendrank = ~rank,
+                    text = ~paste0("<b>", istmt, "</b>"), # Bold name
+                    #name = ~istmt_nbred,
+                    hoverinfo = 'x+y+text', # Display x, y, and the content of 'text'
+
+                    type = 'scatter',
+                    mode = 'lines',
+
+                    colors = hue_pal(
+                        l = 75
+                        # c = 100 # Chroma (saturation). Default is 100. Can adjust if needed.
+                    )(
+                        df$istmt_legend %>%
+                            unique() %>%
+                            length()
+                    )
+                )
+
                 range_x <- NULL
                 range_y <- NULL # Default to NULL (autoscale)
                 x_sd <- isolate(input$selectedDate)
@@ -255,129 +280,148 @@ rtnsServer <- function(
                 # If yaxis_range is still NULL (e.g., no valid data in view), plotly will autoscale Y
                 }
 
-                df %>%
-                    plot_ly(
-                        x = ~date,
-                        y = ~rtn,
-                        color = ~istmt_legend,
-                        linetype = ~type,
-
-                        #legendrank = ~rank,
-                        text = ~paste0("<b>", istmt, "</b>"), # Bold name
-                        #name = ~istmt_nbred,
-                        hoverinfo = 'x+y+text', # Display x, y, and the content of 'text'
-
-                        type = 'scatter',
-                        mode = 'lines',
-
-                        colors = hue_pal(
-                            l = 75
-                            # c = 100 # Chroma (saturation). Default is 100. Can adjust if needed.
-                        )(
-                            df$istmt_legend %>%
-                                unique() %>%
-                                length()
-                        )
-                    ) %>%
-                    layout(
-                        title = "Cumulative Daily USD Returns",
-                        xaxis = list(
-                            title = "Date",
-                            gridcolor = '#444',
-                            color = '#eee',
-                            range = range_x,
-                            rangeslider = list(visible = showRangeSldr_rv() %>% isolate() %||% T),
-                            rangeselector = list(
-                                visible = showRangeSldr_rv() %>% isolate() %||% T, # Set initial state
-                                buttons = list(
-                                    list(
-                                        step = "month",
-                                        count = 1, 
-                                        label = "1m", 
-                                        stepmode = "backward"
-                                    ),
-                                    list(
-                                        step = "month",
-                                        count = 3, 
-                                        label = "3m", 
-                                        stepmode = "backward"
-                                    ),
-                                    list(
-                                        step = "month",
-                                        count = 6, 
-                                        label = "6m", 
-                                        stepmode = "backward"
-                                    ),
-                                    list(
-                                        step = "year",
-                                        count = 1, 
-                                        label = "YTD", 
-                                        stepmode = "todate"
-                                    ),
-                                    list(
-                                        step = "year",
-                                        count = 1, 
-                                        label = "1y", 
-                                        stepmode = "backward"
-                                    ),
-                                    list(
-                                        step = "year",
-                                        count = 3, 
-                                        label = "3y", 
-                                        stepmode = "backward"
-                                    ),
-                                    list(
-                                        step = "year",
-                                        count = 5, 
-                                        label = "5y", 
-                                        stepmode = "backward"
-                                    ),
-                                    list(
-                                        step = "year",
-                                        count = 10, 
-                                        label = "10y", 
-                                        stepmode = "backward"
-                                    ),
-                                    list(
-                                        step = "all",
-                                        label = "All"
-                                    )
+                p <- layout(
+                    p,
+                    title = "Cumulative Daily USD Returns",
+                    xaxis = list(
+                        title = "Date",
+                        gridcolor = '#444',
+                        color = '#eee',
+                        range = range_x,
+                        rangeslider = list(visible = showRangeSldr_rv() %>% isolate() %||% T),
+                        rangeselector = list(
+                            visible = showRangeSldr_rv() %>% isolate() %||% T, # Set initial state
+                            buttons = list(
+                                list(
+                                    step = "month",
+                                    count = 1, 
+                                    label = "1m", 
+                                    stepmode = "backward"
                                 ),
-                                bgcolor = BG_COLOR,
-                                font = list(color = '#eee')
-                            )
-                        ),
-                        yaxis = list(
-                            title = "Cumulative Return",
-                            tickformat = ".2%",
-                            gridcolor = '#444',
-                            color = '#eee',
-                            range = range_y # Apply the calculated default Y range
-                        ),
-                        legend = list(
-                            title = list(text = "Order. | Annualized Return (Xclu Cash)%<br> | Instrument"),
+                                list(
+                                    step = "month",
+                                    count = 3, 
+                                    label = "3m", 
+                                    stepmode = "backward"
+                                ),
+                                list(
+                                    step = "month",
+                                    count = 6, 
+                                    label = "6m", 
+                                    stepmode = "backward"
+                                ),
+                                list(
+                                    step = "year",
+                                    count = 1, 
+                                    label = "YTD", 
+                                    stepmode = "todate"
+                                ),
+                                list(
+                                    step = "year",
+                                    count = 1, 
+                                    label = "1y", 
+                                    stepmode = "backward"
+                                ),
+                                list(
+                                    step = "year",
+                                    count = 3, 
+                                    label = "3y", 
+                                    stepmode = "backward"
+                                ),
+                                list(
+                                    step = "year",
+                                    count = 5, 
+                                    label = "5y", 
+                                    stepmode = "backward"
+                                ),
+                                list(
+                                    step = "year",
+                                    count = 10, 
+                                    label = "10y", 
+                                    stepmode = "backward"
+                                ),
+                                list(
+                                    step = "year",
+                                    count = 20, 
+                                    label = "20y", 
+                                    stepmode = "backward"
+                                ),
+                                list(
+                                    step = "all",
+                                    label = "All"
+                                ),
+                                list(
+                                    label = "Reset"
+                                )
+                            ),
+                            bgcolor = BG_COLOR,
                             font = list(color = '#eee')
-                            #, x = 1.02, # Position slightly right of plot area
-                            #xanchor = 'left' # Anchor legend's left edge to position x
-                            #traceorder = "normal"
-                        ),
-                        showlegend = showLegend_rv() %>% isolate() %||% T, # Set initial state
-                        # Set dark theme colors
-                        plot_bgcolor = BG_COLOR,
-                        paper_bgcolor = BG_COLOR,
+                        )
+                    ),
+                    yaxis = list(
+                        title = "Cumulative Return",
+                        tickformat = ".2%",
+                        gridcolor = '#444',
+                        color = '#eee',
+                        range = range_y # Apply the calculated default Y range
+                    ),
+                    legend = list(
+                        title = list(text = "Order. | Annualized Return (Xclu Cash)%<br> | Instrument"),
                         font = list(color = '#eee')
-                    ) %>%
-                    onRender(sprintf(
+                        #, x = 1.02, # Position slightly right of plot area
+                        #xanchor = 'left' # Anchor legend's left edge to position x
+                        #traceorder = "normal"
+                    ),
+                    showlegend = showLegend_rv() %>% isolate() %||% T, # Set initial state
+                    # Set dark theme colors
+                    plot_bgcolor = BG_COLOR,
+                    paper_bgcolor = BG_COLOR,
+                    font = list(color = '#eee')
+                )
+
+                onRender(
+                    p,
+                    sprintf(
                         "
                             function(el, x) {
+                                // enable inputs
                                 el.on('plotly_afterplot', function() {
                                     console.log('Plot finished rendering');
+
+                                    // Find the rangeselector button nodes after plot renders
+                                    const BTN = el.querySelector('.rangeselector .button:has(.selector-text[data-unformatted=\"Reset\"])');
+
+                                    // if button is shown, not hidden
+                                    if (BTN && !BTN.hasResetLsnr) {
+                                        BTN.hasResetLsnr = true; // Mark the button as having the listener attached
+
+                                        // Add the click listener directly to the reset button node
+                                        BTN.addEventListener('click', function(evt) {
+                                            // Prevent Plotly's default action for this button
+                                            evt.stopPropagation(); 
+                                            evt.preventDefault(); 
+
+                                            // Apply our custom range
+                                            //console.log('Resetting x-axis range to:', R);
+                                            // assiagning R string to replayout directly seems to be the only way it works
+                                            // if assigning to a variable first, even if it's a constant
+                                            // it seems to get modified to other date after clicking other buttons
+                                            // such as 1m, 3m, etc.
+                                            // the R string evaluates to an array, and therefore gets modified
+                                            // even when assigned to a constant
+                                            // however, passing it directly to replayout works
+                                            Plotly.relayout(el, {'xaxis.range': %s});
+                                        }, true); // Use capture phase
+                                    }
+
                                     Shiny.setInputValue('%s', true, {priority: 'event'});
                                 });
                             }
-                        ", 
+                        ",
+                        paste0("['", format(range_x[1], "%Y-%m-%d"), "', '", format(range_x[2], "%Y-%m-%d"), "']"),
                         ns("enableIpts")
-                    ))
+                    )
+                )
             })
 
             plot_proxy <- plotlyProxy("plot", session)
@@ -392,12 +436,13 @@ rtnsServer <- function(
                 showRangeSldr_rv(), 
                 { 
                     plotlyProxyInvoke( 
-                        plot_proxy, "relayout", 
+                        plot_proxy,
+                        "relayout", 
                         list(
                             "xaxis.rangeslider.visible" = showRangeSldr_rv(),
                             "xaxis.rangeselector.visible" = showRangeSldr_rv()
                         ) 
-                    ) 
+                    )
                 },
                 ignoreInit = T
             )

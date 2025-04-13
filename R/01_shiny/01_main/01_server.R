@@ -218,6 +218,10 @@ app_server <- function(input, output, session) {
       'showLegend',
       asis = T
     )
+    disable(
+      'showRangeSldr',
+      asis = T
+    )
   }
 
   enableIpts <- function() {
@@ -273,6 +277,10 @@ app_server <- function(input, output, session) {
     )
     enable(
       'showLegend',
+      asis = T
+    )
+    enable(
+      'showRangeSldr',
       asis = T
     )
   }
