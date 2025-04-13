@@ -1,10 +1,14 @@
+# consts
+BG_COLOR <- "#222"
+# end consts
+
 # Server Logic
 options(
   page.spinner.type = 3,
   page.spinner.color = "#00fff2", # Your cyan color
   page.spinner.color.background = 'rgba(50, 50, 50, 0.2)',
   page.spinner.size = 1.5,
-  page.spinner.background = "#222"
+  page.spinner.background = BG_COLOR
 )
 
 app_server <- function(input, output, session) {

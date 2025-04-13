@@ -26,6 +26,18 @@ hldgsUI_sldr <- function(id) {
     )
 }
 
+hldgsUI_slct_plotType <- function(id) {
+    ns <- NS(id) # Namespace function
+
+    tags$li(
+        selectInput(
+            ns("selectedChartType"), 'Select Chart Type:',
+            choices = c("Sunburst", "Treemap", 'Icicle'),
+            selected = "Sunburst"
+        )
+    )
+}
+
 hldgsUI_plot <- function(id) {
     ns <- NS(id) # Namespace function
    
@@ -33,7 +45,7 @@ hldgsUI_plot <- function(id) {
         column(
             6,
             plotlyOutput(
-                ns("fundsPie"),
+                ns("plot_hierarchical"),
                 height = "100vh",
                 width = "100%"
             )
@@ -48,7 +60,6 @@ hldgsUI_plot <- function(id) {
         )
     )
 }
-    
 
 # Server Function for the Returns Chart Module
 hldgsServer <- function(
@@ -114,86 +125,92 @@ hldgsServer <- function(
             })
 
             # Modify fundsPie and tickersPie outputs for a modern/futuristic appearance
-            output$fundsPie <- renderPlotly({
-              di()
+            output$plot_hierarchical <- renderPlotly({
+                di()
 
-              # Calculate fund values for the selected date
-              h <- selectedHldgVals_cashAdj()
+                # Calculate fund values for the selected date
+                h <- selectedHldgVals_cashAdj()
 
-              if(nrow(h) == 0) {
-                # Return empty plot if no data
-                plot_ly() %>%
-                  layout(
-                    title = "No holdings data available",
-                    paper_bgcolor = '#222',
-                    plot_bgcolor = '#222',
-                    font = list(color = '#eee')
-                  )
-              } else {
-                h %>%
-                    plot_ly(
-                        ids = ~id,
-                        labels = ~lbl,
-                        parents = ~parent,
-                        values = ~val,
-
-                        type = 'sunburst',
-                        branchvalues = 'total', # Values represent the total sum of their children
-
-                        #source = "fundsSunburst", # Changed source name
-                        #customdata = ~ids, # Pass ID for click events
-                        hoverinfo = 'label+percent entry+value',
-
-                        marker = list(
-                            colors = genCyberColors(h),
-                            line = list(
-                                color = 'rgba(0, 255, 242, 0.3)',
-                                width = 2
-                            ) # Thicker cyan lines
-                        ),
-                        insidetextorientation = 'radial',
-                        opacity = 0.95,
-                        textfont = list(
-                            family = "Orbitron, monospace",
-                            color = '#fff'
-                        )
-                    ) %>%
+                if(nrow(h) == 0) {
+                    # Return empty plot if no data
+                    plot_ly() %>%
                     layout(
-                        title = list(
-                            text = "USD Holdings Values", 
-                            font = list(
-                                color = '#00fff2',
-                                family = "Orbitron, monospace"
+                        title = "No holdings data available",
+                        paper_bgcolor = BG_COLOR,
+                        plot_bgcolor = BG_COLOR,
+                        font = list(color = '#eee')
+                    )
+                } else {
+                    h %>%
+                        plot_ly(
+                            ids = ~id,
+                            labels = ~lbl,
+                            parents = ~parent,
+                            values = ~val,
+
+                            type = 'sunburst',
+                            branchvalues = 'total', # Values represent the total sum of their children
+
+                            #source = "fundsSunburst", # Changed source name
+                            #customdata = ~ids, # Pass ID for click events
+                            hoverinfo = 'label+percent entry+value',
+
+                            marker = list(
+                                colors = genCyberColors(h),
+                                line = list(
+                                    color = 'rgba(0, 255, 242, 0.3)',
+                                    width = 2
+                                ) # Thicker cyan lines
+                            ),
+                            insidetextorientation = 'radial',
+                            opacity = 0.95,
+                            textfont = list(
+                                family = "Orbitron, monospace",
+                                color = '#fff'
                             )
-                        ),
-                        paper_bgcolor = '#111', # Darker background
-                        plot_bgcolor = '#111',
-                        font = list(
-                            color = '#00fff2', 
-                            family = "Orbitron, monospace"
-                        ) # Futuristic font
-                        #colorway = CYBER_COLORS # Apply cyber colors cyclically
-                    ) %>%
-                    # the mode bar offers download plot as png, not very useful
-                    # but we can still leave it in there
-                    # config(
-                    #     displayModeBar = FALSE  # Hide the modebar for cleaner look
-                    # ) %>%
-                    onRender(sprintf(
-                        "
-                            function(el, x) {
-                                el.on('plotly_afterplot', function() {
-                                    console.log('Plot finished rendering');
-                                    Shiny.setInputValue('%s', true, {priority: 'event'});
-                                });
-                            }
-                        ", 
-                        ns("enableIpts")
-                    ))
-              }
+                        ) %>%
+                        layout(
+                            title = list(
+                                text = "USD Holdings Values", 
+                                font = list(
+                                    color = '#00fff2',
+                                    family = "Orbitron, monospace"
+                                )
+                            ),
+                            paper_bgcolor = BG_COLOR, # Darker background
+                            plot_bgcolor = BG_COLOR,
+                            font = list(
+                                color = '#00fff2', 
+                                family = "Orbitron, monospace"
+                            ) # Futuristic font
+                            #colorway = CYBER_COLORS # Apply cyber colors cyclically
+                        ) %>%
+                        # the mode bar offers download plot as png, not very useful
+                        # but we can still leave it in there
+                        # config(
+                        #     displayModeBar = FALSE  # Hide the modebar for cleaner look
+                        # ) %>%
+                        onRender(sprintf(
+                            "
+                                function(el, x) {
+                                    el.on('plotly_afterplot', function() {
+                                        console.log('Plot finished rendering');
+                                        Shiny.setInputValue('%s', true, {priority: 'event'});
+                                    });
+                                }
+                            ", 
+                            ns("enableIpts")
+                        ))
+                }
             })
 
-            
+            plot_proxy <- plotlyProxy("plot_hierarchical", session)
+
+            observeEvent(
+                input$selectedChartType, 
+                { plotlyProxyInvoke( plot_proxy, "restyle", list(type = tolower(input$selectedChartType)) ) },
+                ignoreInit = T
+            )
 
             # Render tickers pie chart.
             # output$tickersPie <- renderPlotly({

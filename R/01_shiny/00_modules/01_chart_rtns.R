@@ -206,8 +206,8 @@ rtnsServer <- function(
                     plotly_empty() %>%
                         layout(
                             title = "No return data available for selected instruments/period",
-                            plot_bgcolor = '#222',
-                            paper_bgcolor = '#222',
+                            plot_bgcolor = BG_COLOR,
+                            paper_bgcolor = BG_COLOR,
                             font = list(color = '#eee')
                         ) %>%
                         return()
@@ -343,7 +343,7 @@ rtnsServer <- function(
                                         label = "All"
                                     )
                                 ),
-                                bgcolor = "#222",
+                                bgcolor = BG_COLOR,
                                 font = list(color = '#eee')
                             )
                         ),
@@ -363,8 +363,8 @@ rtnsServer <- function(
                         ),
                         showlegend = showLegend_rv() %>% isolate() %||% T, # Set initial state
                         # Set dark theme colors
-                        plot_bgcolor = '#222',
-                        paper_bgcolor = '#222',
+                        plot_bgcolor = BG_COLOR,
+                        paper_bgcolor = BG_COLOR,
                         font = list(color = '#eee')
                     ) %>%
                     onRender(sprintf(

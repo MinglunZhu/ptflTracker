@@ -68,6 +68,13 @@ app_ui <- tagList(
             # Container for the three columns
             tags$div(
               class = "settings-columns",
+              conditionalPanel(
+                  condition = "input.selected_chart == 'Holdings'",
+                  tags$div(
+                      class = "settings-column",
+                      hldgsUI_slct_plotType('hldgs')
+                  )
+              ),
               # Column 1: sources
               tags$div(
                 class = "settings-column",
