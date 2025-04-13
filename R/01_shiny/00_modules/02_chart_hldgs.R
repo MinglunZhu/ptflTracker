@@ -181,8 +181,16 @@ hldgsServer <- function(
                             plot_bgcolor = BG_COLOR,
                             font = list(
                                 color = '#00fff2', 
-                                family = "Orbitron, monospace"
-                            ) # Futuristic font
+                                family = "Orbitron, monospace" # Futuristic font
+                            ), 
+                            autosize = T,
+                            margin = list(
+                                l = 0,
+                                r = 0,
+                                b = 0,
+                                t = 30,
+                                pad = 0
+                            )
                             #colorway = CYBER_COLORS # Apply cyber colors cyclically
                         ) %>%
                         # the mode bar offers download plot as png, not very useful

@@ -100,56 +100,7 @@ body, .main-header, .content-wrapper, .right-side, .selectize-input, .form-contr
 
 
 
-/* Style for the toggle button */
-.header-toggle {
-  position: fixed;
-  top: 0; /* Adjust vertical position */
-  left: 15px; /* Adjust horizontal position (or use 'right' or 'left: 50%; transform: translateX(-50%);' for center) */
-  z-index: 999; /* Above content but potentially below activated header/dropdown */
- 
-  padding: 5px 10px;
-  border-radius: 4px;
 
-  cursor: pointer;
-
-  transition: background-color 0.2s ease;
-}
-/* end toggle button */
-
-/* Initial state: hidden */
-.main-header {
-  position: fixed;
-  transform: translateY(-100%); /* Move the header out of view */
-  transition: transform 0.3s ease-in-out;
-  z-index: 1000; /* Ensure it covers the chart */
-}
-
-/* When the header is active (visible) */
-.main-header.active {
-  transform: translateY(0);
-}
-
-.logo { 
-  float: none !important; 
-  display: inline !important; 
-  width: auto !important; 
-  line-height: normal !important; 
-}
-.navbar { 
-  margin: 0 !important; 
-  min-height: 30px !important; 
-  display: inline-block; 
-  vertical-align: top;
-}
-
-.navbar .form-group { margin: 0; }
-
-.navbar-nav > li > div { margin:0; width: auto !important; }
-.navbar-nav > li > div > label + div { display: inline-block; }
-
-.navbar-nav > li > a { padding: 5px 10px !important; font-size: 12px; }
-.dropdown { font-size: 12px; }
-.dropdown li > a { padding: 3px 20px; }
 
 section.content { padding: 0; }
 
@@ -425,6 +376,95 @@ which prevents position fixed from working as intended */
     transform: rotate(45deg);
 }
 /* end glass effect */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* nav bar / header */
+/* Style for the toggle button */
+.header-toggle {
+  position: fixed;
+  top: 0; /* Adjust vertical position */
+  left: 15px; /* Adjust horizontal position (or use 'right' or 'left: 50%; transform: translateX(-50%);' for center) */
+  z-index: 999; /* Above content but potentially below activated header/dropdown */
+ 
+  padding: 5px 10px;
+  border-radius: 4px;
+
+  cursor: pointer;
+
+  transition: background-color 0.2s ease;
+}
+/* end toggle button */
+
+/* Initial state: hidden */
+.main-header {
+  position: fixed;
+  transform: translateY(-100%); /* Move the header out of view */
+  transition: transform 0.3s ease-in-out;
+  z-index: 1000; /* Ensure it covers the chart */
+}
+
+/* When the header is active (visible) */
+.main-header.active {
+  transform: translateY(0);
+}
+
+.logo { 
+  float: none !important; 
+  display: inline !important; 
+  width: auto !important; 
+  line-height: normal !important; 
+}
+.navbar { 
+  margin: 0 !important; 
+  min-height: 30px !important; 
+  display: inline-block; 
+  vertical-align: top;
+}
+
+.navbar .form-group { margin: 0; }
+
+.navbar-nav > li > div { margin:0; width: auto !important; }
+.navbar-nav > li > div > label + div { display: inline-block; }
+
+.navbar-nav > li > a { padding: 5px 10px !important; font-size: 12px; }
+.dropdown { font-size: 12px; }
+.dropdown li > a { padding: 3px 20px; }
+/* end nav bar / header */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
