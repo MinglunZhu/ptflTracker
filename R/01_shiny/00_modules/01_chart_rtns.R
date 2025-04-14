@@ -366,7 +366,7 @@ rtnsServer <- function(
                         range = range_y # Apply the calculated default Y range
                     ),
                     legend = list(
-                        title = list(text = "Order. | Annualized Return (Xclu Cash)%<br> | Instrument"),
+                        title = list(text = "Order. | Annualized Return (Xclu Cash)%<br>| Instrument"),
                         font = list(color = '#eee')
                         #, x = 1.02, # Position slightly right of plot area
                         #xanchor = 'left' # Anchor legend's left edge to position x

@@ -4,12 +4,16 @@ RCDS_DIR <- 'rcds/prices/'
 
 # Arranged in color wheel progression
 CYBER_BASE_COLORS <- c(
-    "#1bffad",   # Neon Green (cycles back towards cyan)
     "#00fff2",  # Cyan
     "#00b4ff",  # Electric Blue
     "#7700ff",  # Purple
-    "#ff00f7",  # Hot Pink
-    "#ff3370"  # Neon Red
+    "#ff00f7"  # Hot Pink
+)
+
+# make these color exclusive for performance indicators
+CYBER_PFMC_COLORS <- c(
+  "#1bffad",   # Neon Green (cycles back towards cyan)
+  "#ff3370"  # Neon Red
 )
 
 MAX_COLOR_DIFF <- .1
@@ -385,4 +389,36 @@ genCyberColors <- function(df) {
       }, 
       df$lvl, df$id
     )
+}
+
+green <- CYBER_PFMC_COLORS[1]
+red <- CYBER_PFMC_COLORS[2]
+light_green <- colorspace::mixcolor(0.6, colorspace::hex2RGB(green), colorspace::RGB(1,1,1)) %>% colorspace::hex()
+light_red <- colorspace::mixcolor(0.6, colorspace::hex2RGB(red), colorspace::RGB(1,1,1)) %>% colorspace::hex()
+default_color <- "rgba(128, 128, 128, 0.1)" # For 0, NA
+
+genCyberColors_pfmc <- function(RTNS, MAX, MIN) {
+  # Create separate palettes
+  green_palette <- scales::col_numeric(
+      palette = c(light_green, green), # Light to Dark Green
+      # Add small epsilon to avoid zero-range domains if only one value exists
+      domain = if (MAX > 0) c(0, MAX + 1e-9)
+        else c(0, 1e-9),
+      na.color = default_color
+  )
+  red_palette <- scales::col_numeric(
+      palette = c(red, light_red),   # Dark to Light Red
+      domain = if (MIN < 0) c(MIN - 1e-9, 0)
+        else c(-1e-9, 0),
+      na.color = default_color
+  )
+
+  # it's generating warnings because case_when puts the entire vector through the functions
+  # not just the ones meeting the condition
+  # but that's ok
+  case_when(
+    RTNS > 0 ~ green_palette(RTNS),
+    RTNS < 0 ~ red_palette(RTNS),
+    .default = default_color
+  )
 }

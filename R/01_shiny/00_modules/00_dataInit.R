@@ -408,99 +408,6 @@ dataInitServer <- function(id) {
                                 incProg()
                             }
 
-                            message("Future: Calculating holdings...")
-
-                            # add cash for overall portfolio only
-                            # vals_df has each tkr in each fund in each ctg in each src where tkr has units
-                            hldgs_srcs_df <- bind_rows(
-                                # add each src with portfolio as parent
-                                rename(
-                                    vals_df,
-                                    lbl = src
-                                ),
-                                # add cash for portfolio
-                                rtns_df %>%
-                                    filter(istmt == 'Overall Portfolio') %>%
-                                    select(istmt, date, val_cash) %>%
-                                    rename(val = val_cash) %>%
-                                    mutate(
-                                        lbl = 'Cash',
-                                        isInclCash = T
-                                    )
-                            )
-
-                            # lbl parent val
-                            hldgs_df <<- hldgs_srcs_df %>%
-                                mutate(parent = 'Portfolio') %>%
-                                bind_rows(
-                                    # add portfolio with cash
-                                    mutate(
-                                        hldgs_srcs_df,
-                                        isInclCash = T
-                                    ) %>%
-                                        bind_rows(
-                                            # without cash
-                                            hldgs_srcs_df %>%
-                                                filter(lbl != 'Cash') %>%
-                                                mutate(isInclCash = F)
-                                        ) %>%
-                                        mutate(
-                                            lbl = 'Portfolio',
-                                            parent = ''
-                                        ),
-                                    # add funds
-                                    # funds' parent (ctg) has compound id (src + ctg)
-                                    vals_df %>%
-                                        rename(lbl = fund) %>%
-                                        mutate(parent = paste(src, ctg))
-                                ) %>%
-                                mutate(id = lbl) %>%
-                                bind_rows(
-                                    # add ctgs
-                                    rename(
-                                        vals_df,
-                                        lbl = ctg,
-                                        parent = src
-                                    ) %>%
-                                        # add underlying assets
-                                        # only tkrs that are not the same as the fund
-                                        # if a tkr is the same as one of the funds, but not the same as its own fund
-                                        # then we still want to show it
-                                        bind_rows(
-                                            vals_df %>%
-                                                filter(tkr != fund) %>%
-                                                rename(
-                                                    lbl = tkr,
-                                                    parent = fund
-                                                )
-                                        ) %>%
-                                        mutate(id = paste(parent, lbl))
-                                ) %>%
-                                filter(val > 0) %>%
-                                group_by(id, parent, lbl, date, isInclCash) %>%
-                                summarise(
-                                    val = sum(
-                                        val,
-                                        na.rm = T
-                                    ),
-                                    .groups = 'drop'
-                                )
-
-                            # calculate cash val dynamically depending on the selected fund
-                            # because there are too many possible choices, it's difficult to pre calculate for all of them
-                            # so we will calculate them dynamically
-                            # calcHldgVals_tkrs <- function(FUNDS, INCL_CASH) {
-                            #     r <- filter(hldgs_df, fund %in% FUNDS)
-
-                            #     if (!INCL_CASH) r <- filter(r, tkr != 'Cash')
-
-                            #     if (length(FUNDS) == 1) return(r)
-
-                            #     r <- r %>%
-                            #         group_by(tkr, date) %>%
-                            #         summarise(val = sum(val))
-                            # }
-
                             message("Future: Preparing choice lists...")
 
                             rtns_anlzed_df <- rtns_df %>%
@@ -607,6 +514,130 @@ dataInitServer <- function(id) {
                             openUaGrps <<- latest_hldgs_df %>%
                                 filter(tkr %in% rtns_tkrs) %>%
                                 genSlctGrps(fund, tkr, uniqueFunds_sorted, uniqueUas_sorted, "Funds")
+
+                            message("Future: Calculating holdings...")
+
+                            # add cash for overall portfolio only
+                            # vals_df has each tkr in each fund in each ctg in each src where tkr has units
+                            hldgs_srcs_df <- bind_rows(
+                                # add each src with portfolio as parent
+                                rename(
+                                    vals_df,
+                                    lbl = src
+                                ) %>%
+                                    left_join(
+                                        rtns_anlzed_df %>%
+                                            filter(type == 'Source'),
+                                        by = c('lbl' = 'istmt')
+                                    ),
+                                # add cash for portfolio
+                                rtns_df %>%
+                                    filter(istmt == 'Overall Portfolio') %>%
+                                    select(istmt, date, val_cash) %>%
+                                    rename(val = val_cash) %>%
+                                    mutate(
+                                        lbl = 'Cash',
+                                        isInclCash = T
+                                        # if NA, then it defaults to 0
+                                        #rtn_anlzed = 0
+                                    )
+                            )
+
+                            # lbl parent val
+                            hldgs_df <<- hldgs_srcs_df %>%
+                                mutate(parent = 'Portfolio') %>%
+                                bind_rows(
+                                    # add portfolio with cash
+                                    hldgs_srcs_df %>%
+                                        mutate(
+                                            isInclCash = T,
+                                            # anlzed rtn only have xclu cash
+                                            # for with cash, we will make it NA and see how it goes
+                                            rtn_anlzed = NA
+                                        ) %>%
+                                        bind_rows(
+                                            # without cash
+                                            hldgs_srcs_df %>%
+                                                filter(lbl != 'Cash') %>%
+                                                mutate(
+                                                    isInclCash = F,
+                                                    rtn_anlzed = rtns_anlzed_df %>%
+                                                        filter(istmt == 'Overall Portfolio') %>%
+                                                        pull(rtn_anlzed)
+                                                )
+                                        ) %>%
+                                        mutate(
+                                            lbl = 'Portfolio',
+                                            parent = ''
+                                        ),
+                                    # add funds
+                                    # funds' parent (ctg) has compound id (src + ctg)
+                                    vals_df %>%
+                                        rename(lbl = fund) %>%
+                                        mutate(parent = paste(src, ctg)) %>%
+                                        left_join(
+                                            rtns_anlzed_df %>%
+                                                filter(type == 'Fund'),
+                                            by = c('lbl' = 'istmt')
+                                        )
+                                ) %>%
+                                mutate(id = lbl) %>%
+                                bind_rows(
+                                    # add ctgs
+                                    vals_df %>%
+                                        rename(
+                                            lbl = ctg,
+                                            parent = src
+                                        ) %>%
+                                        left_join(
+                                            rtns_anlzed_df %>%
+                                                filter(type == 'Category'),
+                                            by = c('lbl' = 'istmt')
+                                        ) %>%
+                                        # add underlying assets
+                                        # only tkrs that are not the same as the fund
+                                        # if a tkr is the same as one of the funds, but not the same as its own fund
+                                        # then we still want to show it
+                                        bind_rows(
+                                            vals_df %>%
+                                                filter(tkr != fund) %>%
+                                                rename(
+                                                    lbl = tkr,
+                                                    parent = fund
+                                                ) %>%
+                                                left_join(
+                                                    rtns_anlzed_df %>%
+                                                        filter(type == 'Underlying Asset'),
+                                                    by = c('lbl' = 'istmt')
+                                                )
+                                        ) %>%
+                                        mutate(id = paste(parent, lbl))
+                                ) %>%
+                                filter(val > 0) %>%
+                                group_by(id, parent, lbl, date, isInclCash, rtn_anlzed) %>%
+                                summarise(
+                                    val = sum(
+                                        val,
+                                        na.rm = T
+                                    ),
+                                    .groups = 'drop'
+                                ) %>%
+                                arrange(val)
+
+                            # calculate cash val dynamically depending on the selected fund
+                            # because there are too many possible choices, it's difficult to pre calculate for all of them
+                            # so we will calculate them dynamically
+                            # calcHldgVals_tkrs <- function(FUNDS, INCL_CASH) {
+                            #     r <- filter(hldgs_df, fund %in% FUNDS)
+
+                            #     if (!INCL_CASH) r <- filter(r, tkr != 'Cash')
+
+                            #     if (length(FUNDS) == 1) return(r)
+
+                            #     r <- r %>%
+                            #         group_by(tkr, date) %>%
+                            #         summarise(val = sum(val))
+                            # }
 
                             last_initDate <<- cd
                             message("Future: Data processing complete.")

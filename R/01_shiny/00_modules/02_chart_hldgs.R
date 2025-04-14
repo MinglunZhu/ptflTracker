@@ -141,6 +141,15 @@ hldgsServer <- function(
                         font = list(color = '#eee')
                     )
                 } else {
+                    max_rtn <- max(
+                        h$rtn_anlzed, 
+                        na.rm = T
+                    )
+                    min_rtn <- min(
+                        h$rtn_anlzed, 
+                        na.rm = T
+                    )
+
                     h %>%
                         plot_ly(
                             ids = ~id,
@@ -150,17 +159,55 @@ hldgsServer <- function(
 
                             type = 'sunburst',
                             branchvalues = 'total', # Values represent the total sum of their children
+                            sort = F, # use custom sort to order it clockwise
+                            rotation = 90, # start at 12 o'clock like normal humans do
 
                             #source = "fundsSunburst", # Changed source name
-                            #customdata = ~ids, # Pass ID for click events
-                            hoverinfo = 'label+percent entry+value',
+                            customdata = ~rtn_anlzed, # Pass ID for click events
+                            #hoverinfo = 'label+percent entry+value',
+                            hovertemplate = paste(
+                                "<b>%{label}</b><br>",
+                                # for privacy reasons, let's hide this for now
+                                #"Value: %{value:$,.0f}<br>",
+                                "Pctg of Parent: %{percentParent:.1%}<br>",
+                                "Pctg of Entry: %{percentEntry:.1%}<br>",
+                                "Anlzed Rtn: %{customdata:.2%}", # Assumes ann_rtn is passed to customdata
+                                "<extra></extra>" # Hide the trace info
+                            ),
 
                             marker = list(
                                 colors = genCyberColors(h),
                                 line = list(
-                                    color = 'rgba(0, 255, 242, 0.3)',
+                                    color = genCyberColors_pfmc(h$rtn_anlzed, max_rtn, min_rtn),
                                     width = 2
-                                ) # Thicker cyan lines
+                                ),
+                                colorbar = list(
+                                    title = list(
+                                        text = "Annualized<br>Return",  # Use <br> for line breaks
+                                        font = list(
+                                            family = "Orbitron, monospace",
+                                            color = '#00fff2',
+                                            size = 12  # Adjust size if needed
+                                        )
+                                    ),
+                                    tickfont = list(
+                                        family = "Orbitron, monospace",
+                                        color = '#00fff2'
+                                    ),
+                                    tickformat = ".0%",
+                                    #len = 0.8,  # Length of the colorbar
+                                    thickness = 2,  # Width of the colorbar, match border
+                                    outlinewidth = 0,
+                                    bordercolor = 'rgba(255, 255, 255, 0.3)'
+                                    #bgcolor = 'rgba(0, 0, 0, 0.3)'
+                                ),
+                                colorscale = list(
+                                    list(0, red),  # Red for negative
+                                    list(pmax(0 - min_rtn, 0) / (max_rtn - min_rtn), default_color),       # Default for zero
+                                    list(1, green)   # Cyan for positive
+                                ),
+                                cmin = min_rtn,
+                                cmax = max_rtn
                             ),
                             insidetextorientation = 'radial',
                             opacity = 0.95,
@@ -182,7 +229,8 @@ hldgsServer <- function(
                             font = list(
                                 color = '#00fff2', 
                                 family = "Orbitron, monospace" # Futuristic font
-                            ), 
+                            ),
+
                             autosize = T,
                             margin = list(
                                 l = 0,
@@ -191,6 +239,18 @@ hldgsServer <- function(
                                 t = 30,
                                 pad = 0
                             )
+
+                            # Add color axis for the border performance scale
+                            # coloraxis = list(
+                            #     colorscale = list(c(0, CYBER_BASE_COLORS[6]), c(1, CYBER_BASE_COLORS[1])),
+                            #     colorbar = list(
+                            #         title = "Anlzed Rtn%",
+                            #         tickformat = ".2%" 
+                            #     ),
+                            #     cmin = -max_abs_rtn, # Set min/max for the color bar
+                            #     cmax = max_abs_rtn,
+                            #     showscale = T # Ensure color bar is shown
+                            # )
                             #colorway = CYBER_COLORS # Apply cyber colors cyclically
                         ) %>%
                         # the mode bar offers download plot as png, not very useful
