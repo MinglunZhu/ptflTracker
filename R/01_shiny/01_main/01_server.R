@@ -293,7 +293,7 @@ app_server <- function(input, output, session) {
 
   hldgsServer(
     'hldgs', end_date, reactive(input$selected_chart), reactive(input$selectedFunds_hldgs), reactive(input$inclCash),
-    disableIpts, enableIpts
+    reactive(input$showColorBar), disableIpts, enableIpts
   )
 
   # Reactive val for filtering tickers breakdown by a fund click (NULL = overall)

@@ -63,7 +63,7 @@ hldgsUI_plot <- function(id) {
 
 # Server Function for the Returns Chart Module
 hldgsServer <- function(
-    id, end_date, selectedChart_rv, selectedFunds_rv, inclCash_rv, disableIpts, enableIpts
+    id, end_date, selectedChart_rv, selectedFunds_rv, inclCash_rv, showColorBar_rv, disableIpts, enableIpts
 ) {
     moduleServer(
         id, 
@@ -149,6 +149,7 @@ hldgsServer <- function(
                         h$rtn_anlzed, 
                         na.rm = T
                     )
+                    zero <- pmax(0 - min_rtn, 0) / (max_rtn - min_rtn)
 
                     h %>%
                         plot_ly(
@@ -203,11 +204,13 @@ hldgsServer <- function(
                                 ),
                                 colorscale = list(
                                     list(0, red),  # Red for negative
-                                    list(pmax(0 - min_rtn, 0) / (max_rtn - min_rtn), default_color),       # Default for zero
+                                    list(zero, light_red),
+                                    list(zero, light_green),
                                     list(1, green)   # Cyan for positive
                                 ),
                                 cmin = min_rtn,
-                                cmax = max_rtn
+                                cmax = max_rtn,
+                                showscale = showColorBar_rv() %>% isolate()
                             ),
                             insidetextorientation = 'radial',
                             opacity = 0.95,
@@ -276,7 +279,26 @@ hldgsServer <- function(
 
             observeEvent(
                 input$selectedChartType, 
-                { plotlyProxyInvoke( plot_proxy, "restyle", list(type = tolower(input$selectedChartType)) ) },
+                {
+                    s <- T
+                    t <- input$selectedChartType
+
+                    if (t == 'Sunburst') s <- F
+
+                    plotlyProxyInvoke(
+                        plot_proxy, "restyle", 
+                        list(
+                            type = tolower(t),
+                            sort = s
+                        )
+                    ) 
+                },
+                ignoreInit = T
+            )
+
+            observeEvent(
+                showColorBar_rv(), 
+                { plotlyProxyInvoke( plot_proxy, "restyle", list(marker.showscale = showColorBar_rv()) ) },
                 ignoreInit = T
             )
 

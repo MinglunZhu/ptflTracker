@@ -391,23 +391,64 @@ genCyberColors <- function(df) {
     )
 }
 
+# Function to convert an "rgba(r, g, b, a)" string to "#RRGGBBAA" hex format
+rgba_to_hex <- function(rgba_string) {
+  # Extract numeric values using regex
+  vals <- regmatches(rgba_string, gregexpr("[0-9.]+", rgba_string))[[1]]
+  
+  # Check if we got 4 values
+  if (length(vals) != 4) {
+    warning(paste("Could not parse 4 values from:", rgba_string))
+    return(NA_character_) 
+  }
+  
+  # Convert to numeric
+  r <- as.numeric(vals[1])
+  g <- as.numeric(vals[2])
+  b <- as.numeric(vals[3])
+  a <- as.numeric(vals[4]) # Alpha is typically 0-1
+  
+  # Check for valid ranges (optional but good practice)
+  if (anyNA(c(r, g, b, a)) || 
+      any(c(r, g, b) < 0 | c(r, g, b) > 255) || 
+      a < 0 || a > 1) {
+     warning(paste("Invalid RGBA values parsed:", rgba_string))
+     return(NA_character_)
+  }
+
+  # Use base rgb function to convert to hex with alpha
+  rgb(r, g, b, alpha = a * 255, maxColorValue = 255) 
+}
+
 green <- CYBER_PFMC_COLORS[1]
 red <- CYBER_PFMC_COLORS[2]
-light_green <- colorspace::mixcolor(0.6, colorspace::hex2RGB(green), colorspace::RGB(1,1,1)) %>% colorspace::hex()
-light_red <- colorspace::mixcolor(0.6, colorspace::hex2RGB(red), colorspace::RGB(1,1,1)) %>% colorspace::hex()
 default_color <- "rgba(128, 128, 128, 0.1)" # For 0, NA
+#default_color_hex <- rgba_to_hex(default_color)
+
+alpha_hex_10pct <- "1A"
+
+genLightHex <- function(COLOR) {
+  colorspace::mixcolor(0.7, colorspace::hex2RGB(COLOR), colorspace::RGB(1,1,1)) %>%
+    colorspace::hex() %>%
+    paste0(alpha_hex_10pct)
+}
+
+light_green <- genLightHex(green)
+light_red <- genLightHex(red)
+
+#light_red <- colorspace::mixcolor(0.7, colorspace::hex2RGB(red), colorspace::RGB(1,1,1)) %>% colorspace::hex()
 
 genCyberColors_pfmc <- function(RTNS, MAX, MIN) {
   # Create separate palettes
   green_palette <- scales::col_numeric(
-      palette = c(light_green, green), # Light to Dark Green
+      palette = c(light_green, green),
       # Add small epsilon to avoid zero-range domains if only one value exists
       domain = if (MAX > 0) c(0, MAX + 1e-9)
         else c(0, 1e-9),
       na.color = default_color
   )
   red_palette <- scales::col_numeric(
-      palette = c(red, light_red),   # Dark to Light Red
+      palette = c(red, light_red),
       domain = if (MIN < 0) c(MIN - 1e-9, 0)
         else c(-1e-9, 0),
       na.color = default_color

@@ -127,6 +127,15 @@ app_ui <- tagList(
                       value = F
                     )
                   )
+                ),
+                conditionalPanel(
+                  condition = "input.selected_chart == 'Holdings'",
+                  tags$li(  
+                    checkboxInput(
+                      "showColorBar", "Show Color Bar", 
+                      value = F
+                    )
+                  )
                 )
               )
             )
