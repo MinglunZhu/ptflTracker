@@ -16,7 +16,7 @@ hldgsUI_sldr <- function(id) {
             min = start_date,
             max = RUN_DATE,
             value = RUN_DATE,
-            timeFormat = "%Y-%m-%d", 
+            timeFormat = "%Y-%m-%d",
             width = "100%",
             animate = animationOptions(
                 interval = 1000,   # milliseconds between frames
@@ -40,10 +40,11 @@ hldgsUI_slct_plotType <- function(id) {
 
 hldgsUI_plot <- function(id) {
     ns <- NS(id) # Namespace function
-   
+
     fluidRow(
         column(
             6,
+            id = ns("col_hierarchical"), # Assign an ID
             plotlyOutput(
                 ns("plot_hierarchical"),
                 height = "100vh",
@@ -52,8 +53,9 @@ hldgsUI_plot <- function(id) {
         ),
         column(
             6,
+            id = ns("col_flat"), # Assign an ID
             plotlyOutput(
-                ns("tickersPie"),
+                ns("plot_flat"),
                 height = "100vh",
                 width = "100%"
             )
@@ -66,7 +68,7 @@ hldgsServer <- function(
     id, end_date, selectedChart_rv, selectedFunds_rv, inclCash_rv, showColorBar_rv, disableIpts, enableIpts
 ) {
     moduleServer(
-        id, 
+        id,
         function(input, output, session) {
             ns <- session$ns
 
@@ -90,7 +92,7 @@ hldgsServer <- function(
                 enableIpts()
                 shinyjs::enable('selectedDate')
             }
-            
+
             isFirst_chart <- T
 
             # needed for reactive context which caches the results
@@ -103,7 +105,7 @@ hldgsServer <- function(
                     di()
 
                     filter(
-                        hldgs_df, 
+                        hldgs_df,
                         date == input$selectedDate
                     )
                 }
@@ -111,7 +113,7 @@ hldgsServer <- function(
 
             selectedHldgVals_cashAdj <- reactive({
                 filter(
-                    selectedHldgVals_raw(), 
+                    selectedHldgVals_raw(),
                     is.na(isInclCash)
                     | isInclCash == inclCash_rv()
                 )
@@ -142,11 +144,11 @@ hldgsServer <- function(
                     )
                 } else {
                     max_rtn <- max(
-                        h$rtn_anlzed, 
+                        h$rtn_anlzed,
                         na.rm = T
                     )
                     min_rtn <- min(
-                        h$rtn_anlzed, 
+                        h$rtn_anlzed,
                         na.rm = T
                     )
                     zero <- pmax(0 - min_rtn, 0) / (max_rtn - min_rtn)
@@ -221,7 +223,7 @@ hldgsServer <- function(
                         ) %>%
                         layout(
                             title = list(
-                                text = "USD Holdings Values", 
+                                text = "USD Holdings Values",
                                 font = list(
                                     color = '#00fff2',
                                     family = "Orbitron, monospace"
@@ -230,7 +232,7 @@ hldgsServer <- function(
                             paper_bgcolor = BG_COLOR, # Darker background
                             plot_bgcolor = BG_COLOR,
                             font = list(
-                                color = '#00fff2', 
+                                color = '#00fff2',
                                 family = "Orbitron, monospace" # Futuristic font
                             ),
 
@@ -248,7 +250,7 @@ hldgsServer <- function(
                             #     colorscale = list(c(0, CYBER_BASE_COLORS[6]), c(1, CYBER_BASE_COLORS[1])),
                             #     colorbar = list(
                             #         title = "Anlzed Rtn%",
-                            #         tickformat = ".2%" 
+                            #         tickformat = ".2%"
                             #     ),
                             #     cmin = -max_abs_rtn, # Set min/max for the color bar
                             #     cmax = max_abs_rtn,
@@ -269,7 +271,7 @@ hldgsServer <- function(
                                         Shiny.setInputValue('%s', true, {priority: 'event'});
                                     });
                                 }
-                            ", 
+                            ",
                             ns("enableIpts")
                         ))
                 }
@@ -278,26 +280,80 @@ hldgsServer <- function(
             plot_proxy <- plotlyProxy("plot_hierarchical", session)
 
             observeEvent(
-                input$selectedChartType, 
+                input$selectedChartType,
                 {
+                    # the idea is that the circular nature of the surburst chart
+                    # means that its width is limited by its height
+                    # so it can not take the full available width
+                    # so we make it only have the screen
+                    # but for the other charts we want them to take the full width
+                    rmv <- "col-sm-6"
+                    add <- "col-sm-12"
                     s <- T
+
                     t <- input$selectedChartType
 
-                    if (t == 'Sunburst') s <- F
+                    if (t == 'Sunburst') {
+                        rmv <- "col-sm-12"
+                        add <- "col-sm-6"
+                        s <- F
+                    }
+
+                    # change col size before change plot
+                    # so that new plot uses the new size
+                    # Target the column using its ID within the namespace
+                    id_col_hierarchical <- paste0("#", ns("col_hierarchical"))
+                    id_col_flat <- paste0("#", ns("col_flat"))
+
+                    shinyjs::removeClass(
+                        selector = id_col_hierarchical,
+                        class = rmv
+                    )
+                    shinyjs::addClass(
+                        selector = id_col_hierarchical,
+                        class = add
+                    )
+                    shinyjs::removeClass(
+                        selector = id_col_flat,
+                        class = rmv
+                    )
+                    shinyjs::addClass(
+                        selector = id_col_flat,
+                        class = add
+                    )
 
                     plotlyProxyInvoke(
-                        plot_proxy, "restyle", 
+                        plot_proxy, "restyle",
                         list(
                             type = tolower(t),
                             sort = s
                         )
-                    ) 
+                    )
+
+                    id_plot_hierarchical <- ns("plot_hierarchical") 
+                    id_plot_flat <- ns("plot_flat")
+
+                    # Construct the JavaScript call to resize BOTH plots
+                    # Run the JavaScript
+                    shinyjs::runjs(
+                        sprintf(
+                            "
+                                const   HIERARCHICAL_ELM = document.getElementById('%s'),
+                                        FLAT_ELM = document.getElementById('%s');
+                                
+                                Plotly.Plots.resize(HIERARCHICAL_ELM); 
+                                Plotly.Plots.resize(FLAT_ELM); 
+                            ", 
+                            id_plot_hierarchical,
+                            id_plot_flat
+                        )
+                    )
                 },
                 ignoreInit = T
             )
 
             observeEvent(
-                showColorBar_rv(), 
+                showColorBar_rv(),
                 { plotlyProxyInvoke( plot_proxy, "restyle", list(marker.showscale = showColorBar_rv()) ) },
                 ignoreInit = T
             )

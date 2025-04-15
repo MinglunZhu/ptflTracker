@@ -128,8 +128,8 @@ incProg <- function(DETAILS) {
     )
 }
 
-read_xts <- function(fp) {
-  read_csv(fp) %>%
+read_xts <- function(FP) {
+  read_csv(FP) %>%
     column_to_rownames('Index') %>%
     as.xts()
 }
@@ -281,8 +281,8 @@ genSlctGrps <- function(DF, GRP_COL, SLCT_COL, GRP_LVLS, SLCT_LVLS, GRP_NAME) {
 }
 
 # Convert RGB to hex color
-rgb2hex <- function(r, g, b) {
-    sprintf("#%02X%02X%02X", round(r * 255), round(g * 255), round(b * 255))
+rgb2hex <- function(R, G, B) {
+    sprintf("#%02X%02X%02X", round(R * 255), round(G * 255), round(B * 255))
 }
 
 # Function to get color from wheel based on percentage
