@@ -401,7 +401,7 @@ which prevents position fixed from working as intended */
   position: fixed;
   top: 0; /* Adjust vertical position */
   left: 15px; /* Adjust horizontal position (or use 'right' or 'left: 50%; transform: translateX(-50%);' for center) */
-  z-index: 999; /* Above content but potentially below activated header/dropdown */
+  z-index: 1001; /* Above content and header so it's clickable */
  
   padding: 5px 10px;
   border-radius: 4px;

@@ -222,6 +222,10 @@ app_server <- function(input, output, session) {
       'showRangeSldr',
       asis = T
     )
+    disable(
+      'showColorBar',
+      asis = T
+    )
   }
 
   enableIpts <- function() {
@@ -281,6 +285,10 @@ app_server <- function(input, output, session) {
     )
     enable(
       'showRangeSldr',
+      asis = T
+    )
+    enable(
+      'showColorBar',
       asis = T
     )
   }

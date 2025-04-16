@@ -1,9 +1,9 @@
 #consts
-CYBER_COLORS <- c(
-  "#00fff2", "#00b4ff", "#0051ff",   # Blue spectrum
-  "#7700ff", "#b300ff", "#ff00f7",   # Purple spectrum
-  "#1bffad", "#45ff70", "#c9ff33"    # Green spectrum
-)
+# CYBER_COLORS <- c(
+#   "#00fff2", "#00b4ff", "#0051ff",   # Blue spectrum
+#   "#7700ff", "#b300ff", "#ff00f7",   # Purple spectrum
+#   "#1bffad", "#45ff70", "#c9ff33"    # Green spectrum
+# )
 #end consts
 
 # UI Function for the holdings Chart Module
@@ -84,6 +84,7 @@ hldgsServer <- function(
 
                 # without asis param, the namespace will be added to id
                 shinyjs::disable('selectedDate')
+                shinyjs::disable('selectedChartType')
 
                 sprintf("Shiny.setInputValue('%s', false);", ns("enableIpts")) %>% shinyjs::runjs()
             }
@@ -91,6 +92,7 @@ hldgsServer <- function(
             ei <- function() {
                 enableIpts()
                 shinyjs::enable('selectedDate')
+                shinyjs::enable('selectedChartType')
             }
 
             isFirst_chart <- T
@@ -126,7 +128,9 @@ hldgsServer <- function(
                 ei()
             })
 
-            # Modify fundsPie and tickersPie outputs for a modern/futuristic appearance
+            plot_sort <- F
+            plot_textInfo <- 'label'
+
             output$plot_hierarchical <- renderPlotly({
                 di()
 
@@ -154,17 +158,38 @@ hldgsServer <- function(
                     zero <- pmax(0 - min_rtn, 0) / (max_rtn - min_rtn)
 
                     h %>%
+                        mutate(
+                            # bugged for the path bar
+                            # wdt_bdr = if_else(
+                            #     rtn_anlzed == max_rtn
+                            #     | rtn_anlzed == min_rtn,
+                            #     6,
+                            #     2
+                            # ) %>% replace_na(2),
+                            color_bdr = genCyberColors_pfmc(rtn_anlzed, max_rtn, min_rtn),
+                            text = sprintf(
+                                '%sAnnualized return: %.2f%%',
+                                case_when(
+                                    rtn_anlzed == max_rtn ~ '★ Best Performer<br>',
+                                    rtn_anlzed == min_rtn ~ '✖ Worst Performer<br>',
+                                    .default = ''
+                                ),
+                                rtn_anlzed * 100
+                            )
+                        ) %>%
                         plot_ly(
                             ids = ~id,
                             labels = ~lbl,
                             parents = ~parent,
                             values = ~val,
 
-                            type = 'sunburst',
+                            type = input$selectedChartType %>%
+                                isolate() %>% 
+                                tolower(),
                             branchvalues = 'total', # Values represent the total sum of their children
-                            sort = F, # use custom sort to order it clockwise
+                            sort = plot_sort, # use custom sort to order it clockwise
                             rotation = 90, # start at 12 o'clock like normal humans do
-
+                            
                             #source = "fundsSunburst", # Changed source name
                             customdata = ~rtn_anlzed, # Pass ID for click events
                             #hoverinfo = 'label+percent entry+value',
@@ -177,11 +202,18 @@ hldgsServer <- function(
                                 "Anlzed Rtn: %{customdata:.2%}", # Assumes ann_rtn is passed to customdata
                                 "<extra></extra>" # Hide the trace info
                             ),
+                            text = ~text,
+                            textinfo = plot_textInfo,
+                            textfont = list(
+                                family = "Orbitron, monospace",
+                                color = ~color_bdr
+                            ),
+                            insidetextorientation = 'radial',
 
                             marker = list(
                                 colors = genCyberColors(h),
                                 line = list(
-                                    color = genCyberColors_pfmc(h$rtn_anlzed, max_rtn, min_rtn),
+                                    color = ~color_bdr,
                                     width = 2
                                 ),
                                 colorbar = list(
@@ -214,12 +246,10 @@ hldgsServer <- function(
                                 cmax = max_rtn,
                                 showscale = showColorBar_rv() %>% isolate()
                             ),
-                            insidetextorientation = 'radial',
-                            opacity = 0.95,
-                            textfont = list(
-                                family = "Orbitron, monospace",
-                                color = '#fff'
-                            )
+                            # not applicable to hierarchical charts
+                            #pull = ~pull,
+
+                            opacity = 0.95
                         ) %>%
                         layout(
                             title = list(
@@ -268,10 +298,22 @@ hldgsServer <- function(
                                 function(el, x) {
                                     el.on('plotly_afterplot', function() {
                                         console.log('Plot finished rendering');
+
+                                        // resize
+                                        if (window.chartTypeChged) {
+                                            Plotly.Plots.resize(document.getElementById('%s')); 
+                                            Plotly.Plots.resize(document.getElementById('%s'));
+                                            
+                                            window.chartTypeChged = false;
+                                        }
+                                        
+                                        // enable inputs
                                         Shiny.setInputValue('%s', true, {priority: 'event'});
                                     });
                                 }
                             ",
+                            ns("plot_hierarchical"),
+                            ns("plot_flat"),
                             ns("enableIpts")
                         ))
                 }
@@ -282,6 +324,8 @@ hldgsServer <- function(
             observeEvent(
                 input$selectedChartType,
                 {
+                    di()
+
                     # the idea is that the circular nature of the surburst chart
                     # means that its width is limited by its height
                     # so it can not take the full available width
@@ -289,14 +333,18 @@ hldgsServer <- function(
                     # but for the other charts we want them to take the full width
                     rmv <- "col-sm-6"
                     add <- "col-sm-12"
-                    s <- T
+                    
+                    plot_sort <<- T
+                    plot_textInfo <<- 'label+text+percent parent+percent entry'
 
                     t <- input$selectedChartType
 
                     if (t == 'Sunburst') {
                         rmv <- "col-sm-12"
                         add <- "col-sm-6"
-                        s <- F
+
+                        plot_sort <<- F
+                        plot_textInfo <<- 'label'
                     }
 
                     # change col size before change plot
@@ -322,30 +370,16 @@ hldgsServer <- function(
                         class = add
                     )
 
+                    # Construct the JavaScript call to resize BOTH plots
+                    # Run the JavaScript
+                    shinyjs::runjs('window.chartTypeChged = true;')
+
                     plotlyProxyInvoke(
                         plot_proxy, "restyle",
                         list(
                             type = tolower(t),
-                            sort = s
-                        )
-                    )
-
-                    id_plot_hierarchical <- ns("plot_hierarchical") 
-                    id_plot_flat <- ns("plot_flat")
-
-                    # Construct the JavaScript call to resize BOTH plots
-                    # Run the JavaScript
-                    shinyjs::runjs(
-                        sprintf(
-                            "
-                                const   HIERARCHICAL_ELM = document.getElementById('%s'),
-                                        FLAT_ELM = document.getElementById('%s');
-                                
-                                Plotly.Plots.resize(HIERARCHICAL_ELM); 
-                                Plotly.Plots.resize(FLAT_ELM); 
-                            ", 
-                            id_plot_hierarchical,
-                            id_plot_flat
+                            sort = plot_sort,
+                            textinfo = plot_textInfo
                         )
                     )
                 },

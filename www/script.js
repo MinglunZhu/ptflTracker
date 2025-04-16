@@ -11,8 +11,6 @@ $(document).ready(function() {
 
     TGL_BTN.on('click', function() {
         HDR.addClass('active');
-        // Optional: maybe hide the button when header is active?
-        // toggleBtn.hide();
     });
 
     // Keep the header open when interacting with it
@@ -22,17 +20,16 @@ $(document).ready(function() {
 
     function checkDeactivateHeader() {
         // Deactivate only if mouse is NOT over header AND no dropdowns are shown
-        const ANY_OPEN = $('.dropdown-menu.show').length > 0 || $('.selectize-dropdown.multi').is(':visible'); // Check Bootstrap and Selectize dropdowns
+        // Check both Bootstrap dropdowns and Selectize dropdowns
+        const ANY_OPEN = $('.selectize-dropdown.multi').is(':visible')  
+            || $('.dropdown.open').length > 0 
+            || $('.dropdown-menu.show').length > 0;
 
         // Deactivate only if:
         // 1. Header currently IS active
         // 2. Mouse is NOT over the header area
         // 3. NO dropdown menu is open
-        if (HDR.hasClass('active') && !isMouseOverHdr && !ANY_OPEN) {
-            HDR.removeClass('active');
-            // Optional: show the button again if it was hidden
-            // toggleBtn.show();
-        }
+        if (HDR.hasClass('active') && !isMouseOverHdr && !ANY_OPEN) HDR.removeClass('active');
     }
 
     HDR.on('mouseleave', function() {
@@ -42,10 +39,9 @@ $(document).ready(function() {
         checkDeactivateHeader();
     });
 
-    // Use Bootstrap's event delegation for potentially dynamic dropdowns
-    $(document).on('hidden.bs.dropdown', '.dropdown', function () {
-        // Check conditions when a dropdown closes
-        checkDeactivateHeader();
+    // Use both standard Bootstrap and accessibility plugin events
+    $(document).on('hidden.bs.dropdown hide.bs.dropdown', function () {
+        setTimeout(checkDeactivateHeader, 0);
     });
 
     // Listen for R's request to check orientation

@@ -4,10 +4,27 @@ RCDS_DIR <- 'rcds/prices/'
 
 # Arranged in color wheel progression
 CYBER_BASE_COLORS <- c(
-    "#00fff2",  # Cyan
-    "#00b4ff",  # Electric Blue
-    "#7700ff",  # Purple
-    "#ff00f7"  # Hot Pink
+    # "#00fff2",  # Cyan
+    # "#00b4ff",  # Electric Blue
+    # "#7700ff",  # Purple
+    # "#ff00f7",  # Hot Pink
+  "#00FFFF", # Neon Cyan
+  "#00CED1", # Dark Turquoise
+  "#00BFFF", # Deep Sky Blue
+  "#1E90FF", # Dodger Blue
+  "#7B68EE", # Medium Slate Blue
+  "#483D8B", # Dark Slate Blue
+  "#8A2BE2", # Blue Violet
+  "#9400D3", # Dark Violet
+  "#FF00FF", # Magenta
+  "#FF1493", # Deep Pink
+  "#FFD700", # Cyber Yellow
+  "#FFA500", # Neon Orange
+  "#FF8C00", # Dark Orange
+  "#FFFFFF", # White
+  "#C0C0C0", # Silver
+  "#E0FFFF", # Light Cyan
+  "#B0E0E6"  # Powder Blue
 )
 
 # make these color exclusive for performance indicators
