@@ -16,6 +16,9 @@ library(shinydashboard)
 library(htmlwidgets)
 library(plotly)       
 library(scales)
+library(colorspace)
+library(farver)
+library(prismatic)
 
 # Configure future to be compatible with shinyapps.io
 #options(future.rng.onMisuse = "ignore")

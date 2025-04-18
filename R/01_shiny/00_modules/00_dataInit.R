@@ -590,8 +590,10 @@ dataInitServer <- function(id) {
                                             parent = src
                                         ) %>%
                                         left_join(
-                                            rtns_anlzed_df %>%
-                                                filter(type == 'Category'),
+                                            filter(
+                                                rtns_anlzed_df,
+                                                type == 'Category'
+                                            ),
                                             by = c('lbl' = 'istmt')
                                         ) %>%
                                         # add underlying assets
@@ -606,8 +608,10 @@ dataInitServer <- function(id) {
                                                     parent = fund
                                                 ) %>%
                                                 left_join(
-                                                    rtns_anlzed_df %>%
-                                                        filter(type == 'Underlying Asset'),
+                                                    filter(
+                                                        rtns_anlzed_df,
+                                                        type == 'Underlying Asset'
+                                                    ),
                                                     by = c('lbl' = 'istmt')
                                                 )
                                         ) %>%
@@ -622,7 +626,14 @@ dataInitServer <- function(id) {
                                     ),
                                     .groups = 'drop'
                                 ) %>%
-                                arrange(val)
+                                arrange(val) %>%
+                                mutate(
+                                    lbl = case_when(
+                                        rtn_anlzed > 0 ~ '▲',
+                                        rtn_anlzed < 0 ~ '▼',
+                                        .default = '-'
+                                    ) %>% paste(lbl)
+                                )
 
                             # calculate cash val dynamically depending on the selected fund
                             # because there are too many possible choices, it's difficult to pre calculate for all of them

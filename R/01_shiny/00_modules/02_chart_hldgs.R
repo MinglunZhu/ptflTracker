@@ -157,7 +157,8 @@ hldgsServer <- function(
                     )
                     zero <- pmax(0 - min_rtn, 0) / (max_rtn - min_rtn)
 
-                    h %>%
+                    # calculate border colors so that it can be used in genCyberColors
+                    h <- h %>%
                         mutate(
                             # bugged for the path bar
                             # wdt_bdr = if_else(
@@ -176,7 +177,9 @@ hldgsServer <- function(
                                 ),
                                 rtn_anlzed * 100
                             )
-                        ) %>%
+                        )
+
+                    h %>%
                         plot_ly(
                             ids = ~id,
                             labels = ~lbl,
@@ -237,10 +240,10 @@ hldgsServer <- function(
                                     #bgcolor = 'rgba(0, 0, 0, 0.3)'
                                 ),
                                 colorscale = list(
-                                    list(0, red),  # Red for negative
+                                    list(0, PFMC_RED),  # Red for negative
                                     list(zero, light_red),
                                     list(zero, light_green),
-                                    list(1, green)   # Cyan for positive
+                                    list(1, PFMC_GREEN)   # Cyan for positive
                                 ),
                                 cmin = min_rtn,
                                 cmax = max_rtn,
