@@ -2338,6 +2338,33 @@
         "Built": "R 4.4.1; ; 2024-10-21 00:39:42 UTC; windows"
       }
     },
+    "prismatic": {
+      "Source": "CRAN",
+      "Repository": "https://cran.rstudio.com",
+      "description": {
+        "Package": "prismatic",
+        "Title": "Color Manipulation Tools",
+        "Version": "1.1.2",
+        "Authors@R": "\n    person(\"Emil\", \"Hvitfeldt\", , \"emilhhvitfeldt@gmail.com\", role = c(\"aut\", \"cre\"),\n           comment = c(ORCID = \"0000-0002-0679-1945\"))",
+        "Description": "Manipulate and visualize colors in a intuitive,\n    low-dependency and functional way.",
+        "License": "MIT + file LICENSE",
+        "URL": "https://emilhvitfeldt.github.io/prismatic/,\nhttps://github.com/EmilHvitfeldt/prismatic",
+        "BugReports": "https://github.com/EmilHvitfeldt/prismatic/issues",
+        "Depends": "R (>= 3.2)",
+        "Imports": "graphics, farver (>= 2.0.1), grDevices",
+        "Suggests": "covr, cli, testthat (>= 3.0.0)",
+        "Encoding": "UTF-8",
+        "RoxygenNote": "7.3.1",
+        "Config/testthat/edition": "3",
+        "NeedsCompilation": "no",
+        "Packaged": "2024-04-10 22:54:31 UTC; emilhvitfeldt",
+        "Author": "Emil Hvitfeldt [aut, cre] (<https://orcid.org/0000-0002-0679-1945>)",
+        "Maintainer": "Emil Hvitfeldt <emilhhvitfeldt@gmail.com>",
+        "Repository": "CRAN",
+        "Date/Publication": "2024-04-10 23:10:03 UTC",
+        "Built": "R 4.4.3; ; 2025-04-14 00:28:27 UTC; windows"
+      }
+    },
     "processx": {
       "Source": "CRAN",
       "Repository": "https://cran.rstudio.com",
@@ -3873,13 +3900,13 @@
       "checksum": "05bdb783ee6514c8c072e47680af8ff7"
     },
     ".lintr": {
-      "checksum": "f42e125aaff0dc19845ba9d986c763ca"
+      "checksum": "d0716c77ae52b152f867222da405308d"
     },
     ".RData": {
       "checksum": "1f8f61e7e104690bb0a0082d71ea7859"
     },
     "app.R": {
-      "checksum": "2170260cb6db64b08af64b8d400ac07a"
+      "checksum": "9042c1a3ef0e59158cb120991bfc3a96"
     },
     "deployShinyApps.io.R": {
       "checksum": "43f2acc8541c0f71f4ce0b97961873de"
@@ -3893,29 +3920,32 @@
     "LICENSE": {
       "checksum": "d6ed2712e4edfa4d2afc9c2aec2a3698"
     },
-    "R/00_base/00_pkgs.R": {
-      "checksum": "0b7d654f13443304b5b0adb84bf4593a"
+    "R/00_base/00_pkgs/00_pkgs.R": {
+      "checksum": "c481de3e2d19ebe05cc2eb7e6aadf891"
     },
-    "R/00_base/01_utils.R": {
-      "checksum": "2ee9280842222222a3de6a2d69417e58"
+    "R/00_base/01_utils/00_utils.R": {
+      "checksum": "f4c46a539ef09bd04410aa76e5c04c48"
     },
-    "R/00_base/02_data.R": {
+    "R/00_base/01_utils/01_colors.R": {
+      "checksum": "1112adc1e7c82d33eced01fbcf410583"
+    },
+    "R/00_base/02_data/00_data.R": {
       "checksum": "ca1c03a9fe29a7a89a813eb65765f15d"
     },
     "R/01_shiny/00_modules/00_dataInit.R": {
-      "checksum": "76e201263f322ecd3e5a26efec0d0f47"
+      "checksum": "db84c698dc25ee29e569d7c33633f826"
     },
     "R/01_shiny/00_modules/01_chart_rtns.R": {
-      "checksum": "477cde1a90ffd63619e387647b3c5419"
+      "checksum": "7c14016800288c8424ce4a4808dc207d"
     },
     "R/01_shiny/00_modules/02_chart_hldgs.R": {
-      "checksum": "2b96f06eb16ea202bd1f7eff54b48c67"
+      "checksum": "6b82712414db766c1dbe0f7c335e90f9"
     },
     "R/01_shiny/01_main/00_ui.R": {
-      "checksum": "75a6fe278559a1eeca921c9e2c5e332f"
+      "checksum": "38c540c7b7a53134fe9e78a4fb341cfe"
     },
     "R/01_shiny/01_main/01_server.R": {
-      "checksum": "e5d77b36ff1bdc8d6ea35472d7a49a1d"
+      "checksum": "4c91f1408636bd6e9e36ce3556edf33f"
     },
     "rcds/prices/^GSPC.csv": {
       "checksum": "3d28e82c995ac7754025942c0de8c587"
@@ -3924,37 +3954,37 @@
       "checksum": "9c4f5475439c67975568a8b6e964bad8"
     },
     "rcds/prices/002099.SZ.csv": {
-      "checksum": "d3d7e4e42be09f2aded30fd064939341"
+      "checksum": "2902eb81be1da79572f3d1306dba6645"
     },
     "rcds/prices/0390.HK.csv": {
-      "checksum": "35f220a1b98f676b4c6bb66bfc65e0cc"
+      "checksum": "20c55b9e4a8f76cbe04141968faa753c"
     },
     "rcds/prices/0688.HK.csv": {
-      "checksum": "42f282071f95591c8ba1f337d70e41bf"
+      "checksum": "58f7c59764c28d55576f9793a209d9c2"
     },
     "rcds/prices/0939.HK.csv": {
-      "checksum": "9b4883e9ed58880dc0e842d88ee24c9c"
+      "checksum": "82a9c9dc925795d72cf6d167860491b7"
     },
     "rcds/prices/1186.HK.csv": {
-      "checksum": "e73e1b8ebf97a16c01afd28dc863bf72"
+      "checksum": "197af933a3b593ca481014ec1cb3da0d"
     },
     "rcds/prices/1288.HK.csv": {
-      "checksum": "8facaf58587027313e2fe6bd34a13aa0"
+      "checksum": "91610099fbd4be27540b091c01de37f8"
     },
     "rcds/prices/1398.HK.csv": {
-      "checksum": "87456593f4bd9f947b7926e9205e06ea"
+      "checksum": "a854f56785b69037493e61df1517fcd4"
     },
     "rcds/prices/1898.HK.csv": {
-      "checksum": "08cdc9c34e10af7745d11c95a4df4a2a"
+      "checksum": "0759b42c37b54f2aa2ff63d442127958"
     },
     "rcds/prices/2628.HK.csv": {
-      "checksum": "c4bd471489e8bd6de6ac362130832761"
+      "checksum": "d6fa9a915f05e6e5da7a108960e13f3f"
     },
     "rcds/prices/3328.HK.csv": {
-      "checksum": "a75432a8a7a455f69b7dce7dbb592b5d"
+      "checksum": "2bf54bdefc8e95678bdbc5b9eb505b8c"
     },
     "rcds/prices/3988.HK.csv": {
-      "checksum": "1c108190c9b14bfe908373582ae48336"
+      "checksum": "53466a378096055df537cce62ccac5a9"
     },
     "rcds/prices/513100.SS.csv": {
       "checksum": "b692b8f2f752a875305db272d7973d32"
@@ -3963,13 +3993,13 @@
       "checksum": "1007da82d1e140ed9df96cd93c858394"
     },
     "rcds/prices/AAPL.csv": {
-      "checksum": "b0880d9551e7f0bd0b1a78eb9784de81"
+      "checksum": "e032b18695098065759be2c4e99c7ffe"
     },
     "rcds/prices/ACWI.csv": {
-      "checksum": "efbd83495ff90eeeba57a21f45b3957f"
+      "checksum": "0f17317ae5fa293a8448b914b28dac60"
     },
     "rcds/prices/AIQ.csv": {
-      "checksum": "915193c2dff417a748c606ef6b64640c"
+      "checksum": "4739c20359697157564830d3351b44ca"
     },
     "rcds/prices/AMTD.csv": {
       "checksum": "f0f892be3c2a0e7bbed2e40d9f98a604"
@@ -3978,22 +4008,22 @@
       "checksum": "2fca510663c368b514dd80a6e7e9e808"
     },
     "rcds/prices/ARKQ.csv": {
-      "checksum": "8c79aec7228bab1c0b52b700001274da"
+      "checksum": "0e33aeca0196a6ae77693053d65d0f57"
     },
     "rcds/prices/ATLC.csv": {
       "checksum": "be3ca32a8e309688cc50530aa0641acf"
     },
     "rcds/prices/AVGO.csv": {
-      "checksum": "e43238d8e807cfe12706bddc951ebc9e"
+      "checksum": "4aeaac7bec1b80f770fc4697698fd59c"
     },
     "rcds/prices/BAC.csv": {
-      "checksum": "e463803fd884f6e1845b4a59fb45760e"
+      "checksum": "218dc575006e94da6e211c0c3be7c5c9"
     },
     "rcds/prices/BAR.csv": {
       "checksum": "28917b4b4d959a4665935753139fb841"
     },
     "rcds/prices/BCC.csv": {
-      "checksum": "6e43bbe722f83f7a89e034058e2255b5"
+      "checksum": "bd7e5b2454392415a399be255feb0a76"
     },
     "rcds/prices/BIDU.csv": {
       "checksum": "2b3b58dc477942014836752ab01b13e8"
@@ -4002,34 +4032,34 @@
       "checksum": "920831db94e45b1000c8bfa43cd8518f"
     },
     "rcds/prices/BWLP.csv": {
-      "checksum": "9c2e90a6642adaf0626ee8cd18e38ff7"
+      "checksum": "7e3032375f338ad4f899f6b292dc7820"
     },
     "rcds/prices/CIVI.csv": {
-      "checksum": "8ef3cd54eb5fe7cb355782a09a5712e8"
+      "checksum": "b56cf5413bdc7a948f1135fa742fded5"
     },
     "rcds/prices/CNY=X.csv": {
-      "checksum": "ae739a0760a236a266884bfbdc214fc1"
+      "checksum": "26583e21d04eefeb70c9c3d8064b4b5d"
     },
     "rcds/prices/CNYUSD=X.csv": {
       "checksum": "76bc9d73ed4609ebf6337e5c559bbd91"
     },
     "rcds/prices/CQQQ.csv": {
-      "checksum": "a191b59c2caaf840be057f3c18ebede0"
+      "checksum": "e252082128a358c4e7a1baa7cf630947"
     },
     "rcds/prices/DASH.csv": {
       "checksum": "d3cc59a938c5c2a2015e8c314fb6dda1"
     },
     "rcds/prices/DRIV.csv": {
-      "checksum": "db8271a53bd86f48ef1505a201a062fe"
+      "checksum": "6c8514bfb7f0cb0f41a847ae9cda73a4"
     },
     "rcds/prices/EHLD.csv": {
       "checksum": "6aa33a22f32d9a9e5ca236db0b8aebb9"
     },
     "rcds/prices/ESEA.csv": {
-      "checksum": "0d347e9ea47b66536b567d92e878f274"
+      "checksum": "53a29f31da7b40fb09ad9d90268eac9c"
     },
     "rcds/prices/EUR=X.csv": {
-      "checksum": "f1987c02752c8357085203273477c557"
+      "checksum": "789665bc40b18952e2ee99a96b03dd50"
     },
     "rcds/prices/EURUSD=X.csv": {
       "checksum": "862ddfd4ca67d9372b22c893b2e6733e"
@@ -4038,157 +4068,157 @@
       "checksum": "192500d4820443ab05f3eb214a50b95f"
     },
     "rcds/prices/GGB.csv": {
-      "checksum": "44871668466b1662de5b0041189f243d"
+      "checksum": "94b649229572ec24491770701314deb6"
     },
     "rcds/prices/GOOG.csv": {
-      "checksum": "9c7303ac0ee09047a36544b2025f3295"
+      "checksum": "8b69fff599649038707a7fd176680397"
     },
     "rcds/prices/GOOGL.csv": {
-      "checksum": "9c7f5d345630fa80cbbb439ddf1b9afc"
+      "checksum": "21a528c3f9b037cf21ac8fed69a4e678"
     },
     "rcds/prices/GSL.csv": {
-      "checksum": "f9a2cd5195dacd48176e4266781d4c4a"
+      "checksum": "45e1859945075bed64027760eb384412"
     },
     "rcds/prices/HKD=X.csv": {
-      "checksum": "fe0bc9ce566c1284f8996b42dfa4cfa8"
+      "checksum": "a921389552ea31023e4024da3ed51581"
     },
     "rcds/prices/HKDUSD=X.csv": {
       "checksum": "a5b7ec043dc3c8baeae13b608046fe7b"
     },
     "rcds/prices/HLAG.F.csv": {
-      "checksum": "32ec9db3acc335916d299b146de99824"
+      "checksum": "27d9624b045d83ff64ee0b688c2f1418"
     },
     "rcds/prices/IETC.csv": {
-      "checksum": "d7f0d821db3c00ec7afb2195ec9d5b2a"
+      "checksum": "4eabe24bd487d2ad7413cce1474675e8"
     },
     "rcds/prices/INTC.csv": {
-      "checksum": "1051c2ab6172f112568f1eb1d72a343c"
+      "checksum": "7febdc0aa17395e5089ffc3459feddd6"
     },
     "rcds/prices/IWY.csv": {
-      "checksum": "f8c829513efc5f5a8c7737e1854fe0d0"
+      "checksum": "3a533c8a97a77789f069a9d066da67c1"
     },
     "rcds/prices/JPM.csv": {
-      "checksum": "60b67a84df3981bf6c6e1f24e219a857"
+      "checksum": "d3d969d4f6be6c14bc6c91eb64f3f8b4"
     },
     "rcds/prices/LLY.csv": {
-      "checksum": "b4b7dd69599e9086af09636831dc3522"
+      "checksum": "973a8abab832fd72ca00e5e2d42cf501"
     },
     "rcds/prices/LRNZ.csv": {
       "checksum": "ff9568bc0e2fa100314d767d8eb3b9f1"
     },
     "rcds/prices/MA.csv": {
-      "checksum": "a5fb1ce35fc8433ab70286272d099d79"
+      "checksum": "6d8849b33979d9559be86445ccb5f93c"
     },
     "rcds/prices/MC.PA.csv": {
-      "checksum": "c8655c68defcabcb74698f8b7d56386a"
+      "checksum": "8ba68bc5ded4c929377800f26f29cc3f"
     },
     "rcds/prices/MCHI.csv": {
-      "checksum": "20c9012af4e2c4de021fb0bbf58a24c5"
+      "checksum": "fec93d4e07365f61e6bbc9620a6deb16"
     },
     "rcds/prices/META.csv": {
-      "checksum": "e169f2d36dd57e639052ff5d5716c4bf"
+      "checksum": "260919971120fee6bfcd3b7455efcec4"
     },
     "rcds/prices/MSFT.csv": {
-      "checksum": "4ffc29807f1c8ba881739c87954bed88"
+      "checksum": "8be109a62ed2453495368ebed81dbd34"
     },
     "rcds/prices/MTH.csv": {
-      "checksum": "9719413b9cd7751101a3d145585f3b53"
+      "checksum": "7064c4cf249cc830e713ef5bb2f4d74a"
     },
     "rcds/prices/NTES.csv": {
-      "checksum": "ccb2b7adeaa4665e45774a79f9438c3b"
+      "checksum": "60bbfa769d6298aa0aa7dd6e6aa04fd2"
     },
     "rcds/prices/NVDA.csv": {
-      "checksum": "c1c9dd8687d63f4c377a55a134d591c1"
+      "checksum": "1e5e4fd60ed25abbb708fb55d7e15018"
     },
     "rcds/prices/NVO.csv": {
-      "checksum": "e1aa24271e2bdb92b4e1fb51a3f82c4f"
+      "checksum": "50730acb314ce6047642b5d3d29f6a29"
     },
     "rcds/prices/PFG.csv": {
-      "checksum": "3dd5c2c875cf022fde55bab2091fea3c"
+      "checksum": "96edd4ef86eddf2c5785c014cecdf720"
     },
     "rcds/prices/PFSI.csv": {
-      "checksum": "9e285c4d48793f6a86b23d1c4c4f61aa"
+      "checksum": "5b242a373dd688e01eb7ac7a6c9b3cf2"
     },
     "rcds/prices/PLTR.csv": {
       "checksum": "e8ba8bef60a0d3168910fe053147e748"
     },
     "rcds/prices/QQQ.csv": {
-      "checksum": "94a9c8aa2b3f8bb96a1b0d9338330b7e"
+      "checksum": "f5f3e986e5a5d8624ee1b875be52eccc"
     },
     "rcds/prices/RIO.csv": {
-      "checksum": "13f28ce01599bcceec0ea6e21a801971"
+      "checksum": "eefacc430cebc011b96ccf698f5883fd"
     },
     "rcds/prices/SMH.csv": {
-      "checksum": "24f0a355349113daefa4ea96e7e344db"
+      "checksum": "c3a2626081571a0a23c72de0837787cb"
     },
     "rcds/prices/SOXQ.csv": {
-      "checksum": "072f9beae6d83996343718658fb62314"
+      "checksum": "fe921b91bb30e09c72c315251dcf67ab"
     },
     "rcds/prices/SPXT.csv": {
-      "checksum": "2f2024b633490477953837c7d80a3bec"
+      "checksum": "b63c48c56a6383de1a86ba5b2611fde1"
     },
     "rcds/prices/STIP.csv": {
-      "checksum": "4700661ccacbcbb1691c7352fd55cf40"
+      "checksum": "714d7dca07b6b43a156f70e36ce579bd"
     },
     "rcds/prices/STLA.csv": {
-      "checksum": "f8565a57d9951e8f8305871aeeee88b8"
+      "checksum": "9d53bc351f415a56301497ffefa64137"
     },
     "rcds/prices/STXNDQ.JO.csv": {
       "checksum": "dd4da2623988350422138388dcccb306"
     },
     "rcds/prices/SYG500.JO.csv": {
-      "checksum": "e83c2249c1ab60bfb6feae5e5712b9d1"
+      "checksum": "5d444ce165caba75b8f88159f0054603"
     },
     "rcds/prices/SYGJP.JO.csv": {
-      "checksum": "a97916937d83913f995acd05d7def3a3"
+      "checksum": "62c52b2f4ba42ce2826ceea2329c5b34"
     },
     "rcds/prices/T.csv": {
-      "checksum": "38117afeebb13e7f271f98101c64c893"
+      "checksum": "02ca7ce5e73f551a5980569a42e31f6d"
     },
     "rcds/prices/TECL.csv": {
-      "checksum": "10d5daa88aa489b0065f467520927f3b"
+      "checksum": "dc6f80d67a60914fe47b63c79718edb7"
     },
     "rcds/prices/TIP.csv": {
-      "checksum": "21b3e393dd349cb99664344b6d2206b1"
+      "checksum": "d1fc0627e58a693f7e2ce939d8f577eb"
     },
     "rcds/prices/TMHC.csv": {
       "checksum": "f0c14e8a038c9d96cfe892d20d2fc3ff"
     },
     "rcds/prices/TQQQ.csv": {
-      "checksum": "9a4e890196262679b29a522714f68633"
+      "checksum": "f1bf3e9f06e851fff9849c0f579c2b6f"
     },
     "rcds/prices/TSLA.csv": {
       "checksum": "3cccf680780c4622517ac2397d7bca45"
     },
     "rcds/prices/TSM.csv": {
-      "checksum": "59f84c7103bd909885a71a713e32b254"
+      "checksum": "81549805a355ef43a996c623c3f8359b"
     },
     "rcds/prices/UBS.csv": {
-      "checksum": "328c9164bba26933874d4fa1ded77a24"
+      "checksum": "3d9aee6952d902d35dfe135fc417650d"
     },
     "rcds/prices/UNH.csv": {
-      "checksum": "1215cdbd342f8ba1dc6bf8ef2dae229e"
+      "checksum": "436d496f7008dcf1ecc318848a13cd7d"
     },
     "rcds/prices/UPRO.csv": {
-      "checksum": "63f113c4cd2f288d810be89683199a56"
+      "checksum": "57dc913b96b729112ec9af35f0563918"
     },
     "rcds/prices/V.csv": {
-      "checksum": "ea825a63d7250a6dde1fd89c92e1f0e5"
+      "checksum": "e7583ea1d72d028dfa6857882576f62b"
     },
     "rcds/prices/VOO.csv": {
-      "checksum": "b363fb54db9c415c3bc60a70ba0fdac5"
+      "checksum": "ba5ba3dbff040158bfea5dcde847ac39"
     },
     "rcds/prices/WAL.csv": {
-      "checksum": "9db102c0a0a8845d0038ccc29a3ec584"
+      "checksum": "20fe1e195660704e8fb0e7dbfffacdc4"
     },
     "rcds/prices/XLK.csv": {
-      "checksum": "f367906a5004bb435c12ba4f42beaa68"
+      "checksum": "aaec863d32e0918cdaa60f4823bd7dac"
     },
     "rcds/prices/XOM.csv": {
-      "checksum": "5f9ce7f31081599ab87a7f03cc9a70ee"
+      "checksum": "3037d10197bbf4150d790480b6a2428d"
     },
     "rcds/prices/ZAR=X.csv": {
-      "checksum": "c6c9e8f66a37d4b9af0d0cddde2ee8cc"
+      "checksum": "b2820b9b3595eeabdfd002b9ad193cdd"
     },
     "rcds/prices/ZARUSD=X.csv": {
       "checksum": "88e4de06c8b437b8fa8799a30510ce03"
@@ -4203,16 +4233,16 @@
       "checksum": "d71488e476685d4cc2392e90f99c0331"
     },
     "to-dos.txt": {
-      "checksum": "1a99afae5af155cec82f33ce818894b2"
+      "checksum": "fef5de28e9e6c8a23f0a0459c57486b1"
     },
     "trades.xlsx": {
       "checksum": "777078d0073074db873e5029dd08a282"
     },
     "www/script.js": {
-      "checksum": "fd378a0741a4726c202ddf6a196c62a1"
+      "checksum": "b6c4abc3431903f08c0241a892d274dd"
     },
     "www/styles.css": {
-      "checksum": "842443c8f53ff2de9d39bee3ac8077b4"
+      "checksum": "e8135cff37f0a3e02f467dc88596eda8"
     }
   },
   "users": null
