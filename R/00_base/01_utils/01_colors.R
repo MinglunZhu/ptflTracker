@@ -1,5 +1,11 @@
 # consts
-# Arranged in color wheel progression
+# make these color exclusive for performance indicators
+# Reserved performance indicator colors - DO NOT USE IN REGULAR PALETTES
+PFMC_GREEN <- "#1bffad"   # Neon Green
+PFMC_RED <- "#ff3370"  # Neon Red
+DFT_COLOR <- "rgba(128, 128, 128, 0.6)" # For 0, NA
+
+# Similar color families are positioned far apart in the list to maximize separation
 CYBER_BASE_COLORS <- list(
     # "#b200ff",  # Neon Purple
     # "#9d00ff",  # Electric Purple
@@ -23,17 +29,68 @@ CYBER_BASE_COLORS <- list(
     # "#ff7300"   # Electric Orange
 
     # designed for close colors to be far from each other
-  Cyans_LightBlues = c("#00FFFF", "#E0FFFF", "#00CED1", "#B0E0E6"),
-  Yellows_Oranges_Golds = c("#FF7300", "#FFA500", "#FFD700", "#FF9500", "#FFD100", "#FF8C00"),
-  Neutrals = c("#FFFFFF", "#C0C0C0"),
-  Blues = c("#1E90FF", "#00BFFF"),
-  Magentas_Pinks_Purples = c("#FF00FF", "#B300FF", "#483D8B", "#FF1493", "#8A2BE2", "#7B68EE", "#9400D3")
+  Deep_Blues = c(
+    "#0050A0",  # Deep Tech Blue
+    "#0033CC",  # Royal Tech Blue
+    "#0066FF",  # Bright Tech Blue
+    "#0044BB",  # Medium Tech Blue
+    "#002299",  # Dark Tech Blue
+    "#0055DD"   # Electric Deep Blue
+  ),
+  Yellows = c(
+    "#FFD100",  # Cyber Gold
+    "#FFEE00",  # Electric Yellow
+    "#FFE200"   # Tech Yellow
+  ),
+  Magentas = c(
+    "#FF00FF",  # Pure Magenta
+    "#CC00CC",  # Dark Magenta
+    "#FF33FF",  # Bright Magenta
+    "#990099",  # Deep Tech Magenta
+    "#FF66FF",  # Light Magenta
+    "#EE33EE"   # Electric Magenta
+  ),
+  Neutrals = c(
+    "#FFFFFF",  # White
+    "#333333",  # Deep Tech Grey
+    "#AAAAAA",  # Medium Tech Grey
+    "#555555",  # Dark Tech Grey
+    "#DDDDDD",  # Light Tech Grey
+    "#888888"   # Tech Grey
+  ),
+  Electric_Cyans = c(
+    "#00FFFF",  # Pure Cyan
+    "#00D8E8",  # Tech Cyan
+    "#00B8CC",  # Deep Cyan
+    "#00E8E8",  # Electric Cyan
+    "#00A8BB",  # Dark Cyan
+    "#00C8DD"   # Medium Cyan
+  ),
+  Purples = c(
+    "#7700FF",  # Bright Purple
+    "#9D00FF",  # Neon Purple
+    "#6600EE",  # Deep Purple
+    "#8800DD",  # Tech Purple
+    "#5500CC",  # Dark Purple
+    "#7700EE"   # Electric Purple
+  ),
+  Oranges = c(
+    "#FF7300",  # Tech Orange
+    "#FF9500",  # Neon Orange
+    "#FF8800",  # Electric Orange
+    "#FFA500",  # Bright Orange
+    "#FF7700",  # Deep Orange
+    "#FF9900"   # Cyber Orange
+  ),
+  Pinks = c(
+    "#FF00AA",  # Electric Pink
+    "#FF0095",  # Cyber Pink
+    "#FF0077",  # Deep Pink
+    "#FF66AA",  # Bright Pink
+    "#FF0088",  # Tech Pink
+    "#FF55AA"   # Neon Pink
+  )
 )
-
-# make these color exclusive for performance indicators
-PFMC_GREEN <- "#1bffad"   # Neon Green (cycles back towards cyan)
-PFMC_RED <- "#ff3370"  # Neon Red
-DFT_COLOR <- "rgba(128, 128, 128, 0.6)" # For 0, NA
 
 MAX_COLOR_DIFF <- .1
 

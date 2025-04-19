@@ -22,9 +22,11 @@ rtnsUI_sldr <- function(id) {
 rtnsUI_plot <- function(id) {
     ns <- NS(id) # Namespace function
     
-    plotlyOutput(
-        ns("plot"),
-        height = "100vh"
+    shinycssloaders::withSpinner(
+        plotlyOutput(
+            ns("plot"),
+            height = "100vh"
+        )
     )
 }
 

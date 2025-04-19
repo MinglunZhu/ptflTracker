@@ -152,16 +152,11 @@ app_ui <- tagList(
     dashboardBody(
       conditionalPanel(
         condition = "input.selected_chart == 'Returns'",
-        shinycssloaders::withSpinner(
-          rtnsUI_plot("rtns")
-        )
+        rtnsUI_plot("rtns")
       ),
       conditionalPanel(
         condition = "input.selected_chart == 'Holdings'",
-        shinycssloaders::withSpinner(
-          hldgsUI_plot("hldgs"),
-          type = 2
-        )
+        hldgsUI_plot("hldgs")
       ),
 
       # Add the activation button here, positioned fixed

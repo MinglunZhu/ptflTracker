@@ -45,10 +45,13 @@ hldgsUI_plot <- function(id) {
         column(
             6,
             id = ns("col_hierarchical"), # Assign an ID
-            plotlyOutput(
-                ns("plot_hierarchical"),
-                height = "100vh",
-                width = "100%"
+            shinycssloaders::withSpinner(
+                plotlyOutput(
+                    ns("plot_hierarchical"),
+                    height = "100vh",
+                    width = "100%"
+                ),
+                type = 2
             )
         ),
         column(
