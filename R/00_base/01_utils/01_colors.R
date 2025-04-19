@@ -6,6 +6,7 @@ PFMC_RED <- "#ff3370"  # Neon Red
 DFT_COLOR <- "rgba(128, 128, 128, 0.6)" # For 0, NA
 
 # Similar color families are positioned far apart in the list to maximize separation
+# no neutral because those turn red after saturation increase
 CYBER_BASE_COLORS <- list(
     # "#b200ff",  # Neon Purple
     # "#9d00ff",  # Electric Purple
@@ -29,42 +30,27 @@ CYBER_BASE_COLORS <- list(
     # "#ff7300"   # Electric Orange
 
     # designed for close colors to be far from each other
-  Deep_Blues = c(
-    "#0050A0",  # Deep Tech Blue
-    "#0033CC",  # Royal Tech Blue
-    "#0066FF",  # Bright Tech Blue
-    "#0044BB",  # Medium Tech Blue
-    "#002299",  # Dark Tech Blue
-    "#0055DD"   # Electric Deep Blue
-  ),
-  Yellows = c(
-    "#FFD100",  # Cyber Gold
-    "#FFEE00",  # Electric Yellow
-    "#FFE200"   # Tech Yellow
-  ),
-  Magentas = c(
-    "#FF00FF",  # Pure Magenta
-    "#CC00CC",  # Dark Magenta
-    "#FF33FF",  # Bright Magenta
-    "#990099",  # Deep Tech Magenta
-    "#FF66FF",  # Light Magenta
-    "#EE33EE"   # Electric Magenta
-  ),
-  Neutrals = c(
-    "#FFFFFF",  # White
-    "#333333",  # Deep Tech Grey
-    "#AAAAAA",  # Medium Tech Grey
-    "#555555",  # Dark Tech Grey
-    "#DDDDDD",  # Light Tech Grey
-    "#888888"   # Tech Grey
-  ),
-  Electric_Cyans = c(
+    Magentas = c(
+      "#FF00FF",  # Pure Magenta
+      "#CC00CC",  # Dark Magenta
+      "#FF33FF",  # Bright Magenta
+      "#990099",  # Deep Tech Magenta
+      "#FF66FF",  # Light Magenta
+      "#EE33EE"   # Electric Magenta
+    ),
+  Blues_Cyans = c(
     "#00FFFF",  # Pure Cyan
-    "#00D8E8",  # Tech Cyan
-    "#00B8CC",  # Deep Cyan
+    "#0033CC",  # Royal Tech Blue
     "#00E8E8",  # Electric Cyan
+    "#0066FF",  # Bright Tech Blue
+    "#00B8CC",  # Deep Cyan
+    "#002299",  # Dark Tech Blue
+    "#00D8E8",  # Tech Cyan
+    "#0050A0",  # Deep Tech Blue
     "#00A8BB",  # Dark Cyan
-    "#00C8DD"   # Medium Cyan
+    "#0044BB",  # Medium Tech Blue
+    "#00C8DD",  # Medium Cyan
+    "#0055DD"   # Electric Deep Blue
   ),
   Purples = c(
     "#7700FF",  # Bright Purple
@@ -74,10 +60,13 @@ CYBER_BASE_COLORS <- list(
     "#5500CC",  # Dark Purple
     "#7700EE"   # Electric Purple
   ),
-  Oranges = c(
+  Oranges_Yellows = c(
     "#FF7300",  # Tech Orange
+    "#FFEE00",  # Electric Yellow
     "#FF9500",  # Neon Orange
+    "#FFD100",  # Cyber Gold
     "#FF8800",  # Electric Orange
+    "#FFE200",  # Tech Yellow
     "#FFA500",  # Bright Orange
     "#FF7700",  # Deep Orange
     "#FF9900"   # Cyber Orange
