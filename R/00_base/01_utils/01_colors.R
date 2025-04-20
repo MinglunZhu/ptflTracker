@@ -82,6 +82,7 @@ CYBER_BASE_COLORS <- list(
 )
 
 MAX_COLOR_DIFF <- .1
+MIN_LUM_DIFF <- .3
 
 MAX_HUE_ROTATION <- 5  # Maximum degrees to rotate
 # end consts
@@ -350,11 +351,11 @@ genCyberColors <- function(df) {
             lum_c <- getLuminance(c)
             lum_text <- parseRgb(node$color_bdr) %>% getLuminance()
 
-            if (abs(lum_text - lum_c) < 0.5) {
+            if (abs(lum_text - lum_c) < MIN_LUM_DIFF) {
                 fct_adj <- if (lum_text > .5) darken else lighten
 
                 rslt <- uniroot(
-                    function(amt) { abs(adjContrast(c, fct_adj, amt) %>% getLuminance() - lum_text) - .5 },
+                    function(amt) { abs(adjContrast(c, fct_adj, amt) %>% getLuminance() - lum_text) - MIN_LUM_DIFF },
                     lower = 0,
                     upper = 1,
                     tol = 1e-2

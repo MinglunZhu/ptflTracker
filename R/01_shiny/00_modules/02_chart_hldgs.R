@@ -4,6 +4,7 @@
 #   "#7700ff", "#b300ff", "#ff00f7",   # Purple spectrum
 #   "#1bffad", "#45ff70", "#c9ff33"    # Green spectrum
 # )
+BDR_WDT <- 1
 #end consts
 
 # UI Function for the holdings Chart Module
@@ -220,7 +221,7 @@ hldgsServer <- function(
                                 colors = genCyberColors(h),
                                 line = list(
                                     color = ~color_bdr,
-                                    width = 2
+                                    width = BDR_WDT
                                 ),
                                 colorbar = list(
                                     title = list(
@@ -237,7 +238,7 @@ hldgsServer <- function(
                                     ),
                                     tickformat = ".0%",
                                     #len = 0.8,  # Length of the colorbar
-                                    thickness = 2,  # Width of the colorbar, match border
+                                    thickness = BDR_WDT,  # Width of the colorbar, match border
                                     outlinewidth = 0,
                                     bordercolor = 'rgba(255, 255, 255, 0.3)'
                                     #bgcolor = 'rgba(0, 0, 0, 0.3)'
@@ -250,8 +251,17 @@ hldgsServer <- function(
                                 ),
                                 cmin = min_rtn,
                                 cmax = max_rtn,
-                                showscale = showColorBar_rv() %>% isolate()
+                                showscale = showColorBar_rv() %>% isolate(),
+                                pad = list(
+                                    #t = 10, 
+                                    b = 0, 
+                                    l = 0, 
+                                    r = 0
+                                )
                             ),
+                            # remove internal padding between boxes
+                            # 4 levels src ctg fund tkr
+                            tiling = list(pad = 0),
                             # not applicable to hierarchical charts
                             #pull = ~pull,
 
@@ -277,7 +287,7 @@ hldgsServer <- function(
                                 l = 0,
                                 r = 0,
                                 b = 0,
-                                t = 30,
+                                #t = 30,
                                 pad = 0
                             )
 
