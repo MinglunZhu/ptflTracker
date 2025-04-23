@@ -136,6 +136,12 @@ app_ui <- tagList(
                       value = F
                     )
                   )
+                ),
+                tags$li(  
+                  checkboxInput(
+                    "enableUd_plots", "Enable Chart Updates", 
+                    value = T
+                  )
                 )
               )
             )

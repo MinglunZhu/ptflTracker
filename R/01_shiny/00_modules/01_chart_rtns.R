@@ -33,7 +33,7 @@ rtnsUI_plot <- function(id) {
 # Server Function for the Returns Chart Module
 rtnsServer <- function(
     id, end_date, selectedChart_rv, selectedSrcs_rv, selectedCtgs_rv, selectedFunds_rv, selectedUas_rv, inclCash_rv, showLegend_rv,
-    showRangeSldr_rv, disableIpts, enableIpts
+    showRangeSldr_rv, enableUd_plots_rv, disableIpts, enableIpts
 ) {
     moduleServer(
         id, 
@@ -60,15 +60,62 @@ rtnsServer <- function(
                 shinyjs::enable('selectedDate')
             }
             
-            isFirst_chart <- T
+            isChanged_istmts <- F
+            isChanged_date <- F
+
+            needUd_istmts <- reactiveVal(NULL)
+            needUd_date <- reactiveVal(NULL)
+
+            observeEvent(
+                list(enableUd_plots_rv(), selectedChart_rv()),
+                {
+                    req(
+                        enableUd_plots_rv(),
+                        selectedChart_rv() == 'Returns'
+                    )
+
+                    if (isChanged_istmts) { 
+                        Sys.time() %>% needUd_istmts()
+
+                        return()
+                    }
+
+                    if (isChanged_date) Sys.time() %>% needUd_date()
+                },
+                ignoreInit = T
+            )
+
+            observeEvent(
+                list(selectedSrcs_rv(), selectedCtgs_rv(), selectedFunds_rv(), selectedUas_rv()),
+                {
+                    isChanged_istmts <<- T
+
+                    req(
+                        enableUd_plots_rv(),
+                        selectedChart_rv() == 'Returns'
+                    )
+
+                    Sys.time() %>% needUd_istmts()
+                }
+            )
+
+            observeEvent(
+                input$selectedDate,
+                {
+                    isChanged_date <<- T
+
+                    # date slider is only available in returns chart
+                    req(enableUd_plots_rv())
+
+                    Sys.time() %>% needUd_date()
+                },
+                ignoreInit = T
+            )
 
             selectedRtns_raw <- eventReactive(
-                list(
-                    selectedSrcs_rv(), selectedCtgs_rv(), selectedFunds_rv(), selectedUas_rv()
-                ),
+                needUd_istmts(),
                 {
-                    if (isFirst_chart) isFirst_chart <<- F
-                    else req(selectedChart_rv() == 'Returns')
+                    isChanged_istmts <<- F
 
                     di()
 
@@ -161,12 +208,14 @@ rtnsServer <- function(
 
             # Reactive: rebase all selected return series to a common base date.
             selectedRtns_rebased <- eventReactive(
-                list(needUd_rtns(), input$selectedDate),
+                list(needUd_rtns(), needUd_date()),
                 {
                     if (isFirst_date) {
                         isFirst_date <<- F
                         req(F)
                     }
+
+                    isChanged_date <<- F
 
                     di()
 

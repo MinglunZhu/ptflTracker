@@ -32,7 +32,7 @@ hldgsUI_slct_plotType <- function(id) {
 
     tags$li(
         selectInput(
-            ns("selectedChartType"), 'Select Chart Type:',
+            ns("selectedChartType"), 'Select Chart Type (Hierarchical):',
             choices = c("Sunburst", "Treemap", 'Icicle'),
             selected = "Sunburst"
         )
@@ -69,7 +69,7 @@ hldgsUI_plot <- function(id) {
 
 # Server Function for the Returns Chart Module
 hldgsServer <- function(
-    id, end_date, selectedChart_rv, selectedFunds_rv, inclCash_rv, showColorBar_rv, disableIpts, enableIpts
+    id, end_date, selectedChart_rv, selectedFunds_rv, inclCash_rv, showColorBar_rv, enableUd_plots_rv, disableIpts, enableIpts
 ) {
     moduleServer(
         id,
@@ -99,14 +99,40 @@ hldgsServer <- function(
                 shinyjs::enable('selectedChartType')
             }
 
-            isFirst_chart <- T
+            isChanged_date <- F
+
+            needUd_date <- reactiveVal(NULL)
+
+            observeEvent(
+                list(enableUd_plots_rv(), selectedChart_rv()),
+                {
+                    req(
+                        enableUd_plots_rv(),
+                        selectedChart_rv() == 'Holdings'
+                    )
+
+                    if (isChanged_date) Sys.time() %>% needUd_date()
+                },
+                ignoreInit = T
+            )
+
+            observeEvent(
+                input$selectedDate,
+                {
+                    isChanged_date <<- T
+
+                    # date slider is only available in returns chart
+                    req(enableUd_plots_rv())
+
+                    Sys.time() %>% needUd_date()
+                }
+            )
 
             # needed for reactive context which caches the results
             selectedHldgVals_raw <- eventReactive(
-                input$selectedDate,
+                needUd_date(),
                 {
-                    if (isFirst_chart) isFirst_chart <<- F
-                    else req(selectedChart_rv() == 'Holdings')
+                    isChanged_date <<- F
 
                     di()
 

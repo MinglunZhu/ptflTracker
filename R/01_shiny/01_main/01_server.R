@@ -226,6 +226,10 @@ app_server <- function(input, output, session) {
       'showColorBar',
       asis = T
     )
+    disable(
+      "enableUd_plots",
+      asis = T
+    )
   }
 
   enableIpts <- function() {
@@ -291,17 +295,21 @@ app_server <- function(input, output, session) {
       'showColorBar',
       asis = T
     )
+    enable(
+      "enableUd_plots",
+      asis = T
+    )
   }
 
   rtnsServer(
     'rtns', end_date, reactive(input$selected_chart), reactive(input$selectedSrcs_rtns), reactive(input$selectedCtgs_rtns),
     reactive(input$selectedFunds_rtns), reactive(input$selectedUas_rtns), reactive(input$inclCash), reactive(input$showLegend),
-    reactive(input$showRangeSldr), disableIpts, enableIpts
+    reactive(input$showRangeSldr), reactive(input$enableUd_plots), disableIpts, enableIpts
   )
 
   hldgsServer(
     'hldgs', end_date, reactive(input$selected_chart), reactive(input$selectedFunds_hldgs), reactive(input$inclCash),
-    reactive(input$showColorBar), disableIpts, enableIpts
+    reactive(input$showColorBar), reactive(input$enableUd_plots), disableIpts, enableIpts
   )
 
   # Reactive val for filtering tickers breakdown by a fund click (NULL = overall)

@@ -14,7 +14,6 @@ Make settings columns wrap for narrow screens
 
 Maybe:
 Check if progress bar disappears on error on the cloud host, if so, try to fix.
-checkbox or button to toggle plot update (This allows changing multiple settings before update)
 Use common template for modules
 
 
