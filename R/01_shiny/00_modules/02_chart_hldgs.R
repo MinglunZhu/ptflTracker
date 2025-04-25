@@ -30,11 +30,20 @@ hldgsUI_sldr <- function(id) {
 hldgsUI_slct_plotType <- function(id) {
     ns <- NS(id) # Namespace function
 
-    tags$li(
-        selectInput(
-            ns("selectedChartType"), 'Select Chart Type (Hierarchical):',
-            choices = c("Sunburst", "Treemap", 'Icicle'),
-            selected = "Sunburst"
+    tagList(
+        tags$li(
+            selectInput(
+                ns("selectedChartType_hierarchical"), 'Select Chart Type (Hierarchical):',
+                choices = c("Sunburst", "Treemap", 'Icicle'),
+                selected = "Sunburst"
+            )
+        ),
+        tags$li(
+            selectInput(
+                ns("selectedChartType_flat"), 'Select Chart Type (Flat):',
+                choices = c("Pie", "Waffle", 'Stacked Bar'),
+                selected = "Pie"
+            )
         )
     )
 }
@@ -88,7 +97,8 @@ hldgsServer <- function(
 
                 # without asis param, the namespace will be added to id
                 shinyjs::disable('selectedDate')
-                shinyjs::disable('selectedChartType')
+                shinyjs::disable('selectedChartType_hierarchical')
+                shinyjs::disable('selectedChartType_flat')
 
                 sprintf("Shiny.setInputValue('%s', false);", ns("enableIpts")) %>% shinyjs::runjs()
             }
@@ -96,7 +106,8 @@ hldgsServer <- function(
             ei <- function() {
                 enableIpts()
                 shinyjs::enable('selectedDate')
-                shinyjs::enable('selectedChartType')
+                shinyjs::enable('selectedChartType_hierarchical')
+                shinyjs::enable('selectedChartType_flat')
             }
 
             isChanged_date <- F
@@ -144,6 +155,8 @@ hldgsServer <- function(
             )
 
             selectedHldgVals_cashAdj <- reactive({
+                di()
+                
                 filter(
                     selectedHldgVals_raw(),
                     is.na(isInclCash)
@@ -216,7 +229,7 @@ hldgsServer <- function(
                             parents = ~parent,
                             values = ~val,
 
-                            type = input$selectedChartType %>%
+                            type = input$selectedChartType_hierarchical %>%
                                 isolate() %>% 
                                 tolower(),
                             branchvalues = 'total', # Values represent the total sum of their children
@@ -364,7 +377,7 @@ hldgsServer <- function(
             plot_proxy <- plotlyProxy("plot_hierarchical", session)
 
             observeEvent(
-                input$selectedChartType,
+                input$selectedChartType_hierarchical,
                 {
                     di()
 
@@ -379,7 +392,7 @@ hldgsServer <- function(
                     plot_sort <<- T
                     plot_textInfo <<- 'label+text+percent parent+percent entry'
 
-                    t <- input$selectedChartType
+                    t <- input$selectedChartType_hierarchical
 
                     if (t == 'Sunburst') {
                         rmv <- "col-sm-12"
@@ -434,65 +447,60 @@ hldgsServer <- function(
                 ignoreInit = T
             )
 
-            # Render tickers pie chart.
-            # output$tickersPie <- renderPlotly({
-            #   disableIpts()
+            #Render tickers pie chart.
+            output$plot_flat <- renderPlotly({
+              h <- selectedHldgVals_tkrs()
 
-            #   # Ensure inputs are re-enabled
-            #   on.exit({ enableIpts() })
+              if(nrow(h) == 0) {
+                # Return empty plot if no data
+                plot_ly() %>%
+                  layout(
+                    title = "No holdings data available",
+                    paper_bgcolor = '#222',
+                    plot_bgcolor = '#222',
+                    font = list(color = '#eee')
+                  )
+              } else {
+                sfs <- selectedFunds_hldgs()
+                fn <- if_else(
+                  length(sfs) == 0,
+                  'Overall Portfolio',
+                  paste(
+                    sfs,
+                    collapse = " + "
+                  )
+                )
 
-            #   h <- selectedHldgVals_tkrs()
-
-            #   if(nrow(h) == 0) {
-            #     # Return empty plot if no data
-            #     plot_ly() %>%
-            #       layout(
-            #         title = "No holdings data available",
-            #         paper_bgcolor = '#222',
-            #         plot_bgcolor = '#222',
-            #         font = list(color = '#eee')
-            #       )
-            #   } else {
-            #     sfs <- selectedFunds_hldgs()
-            #     fn <- if_else(
-            #       length(sfs) == 0,
-            #       'Overall Portfolio',
-            #       paste(
-            #         sfs,
-            #         collapse = " + "
-            #       )
-            #     )
-
-            #     h %>%
-            #       plot_ly(
-            #         labels = ~name,
-            #         values = ~val,
-            #         type = 'pie',
-            #         hole = 0.6,
-            #         textinfo = 'label+percent',
-            #         insidetextorientation = 'radial',
-            #         marker = list(
-            #           line = list(
-            #             color = 'rgba(255, 255, 255, 0.3)',  # White glow effect
-            #             width = 1
-            #           ),
-            #           colors = colorRampPalette(c("#ffffff", "#e6e6ff", "#ccccff", "#b3b3ff"))(nrow(h)) # White to light blue gradient
-            #         ),
-            #         hoverinfo = 'label+percent+value',
-            #         opacity = 0.95,
-            #         direction = 'clockwise'
-            #       ) %>%
-            #       createPieLayout(
-            #         paste0("Holdings by Ticker (", fn, ")"),
-            #         list(
-            #           family = "-apple-system",
-            #           size = 18,
-            #           color = "#ffffff"  # White text
-            #         ),
-            #         list(color = '#ffffff') # White text for labels
-            #       )
-            #   }
-            # })
+                h %>%
+                  plot_ly(
+                    labels = ~name,
+                    values = ~val,
+                    type = 'pie',
+                    hole = 0.6,
+                    textinfo = 'label+percent',
+                    insidetextorientation = 'radial',
+                    marker = list(
+                      line = list(
+                        color = 'rgba(255, 255, 255, 0.3)',  # White glow effect
+                        width = 1
+                      ),
+                      colors = colorRampPalette(c("#ffffff", "#e6e6ff", "#ccccff", "#b3b3ff"))(nrow(h)) # White to light blue gradient
+                    ),
+                    hoverinfo = 'label+percent+value',
+                    opacity = 0.95,
+                    direction = 'clockwise'
+                  ) %>%
+                  createPieLayout(
+                    paste0("Holdings by Ticker (", fn, ")"),
+                    list(
+                      family = "-apple-system",
+                      size = 18,
+                      color = "#ffffff"  # White text
+                    ),
+                    list(color = '#ffffff') # White text for labels
+                  )
+              }
+            })
         }
     ) # End moduleServer
 }

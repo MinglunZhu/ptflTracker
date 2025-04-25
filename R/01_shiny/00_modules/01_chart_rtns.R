@@ -133,6 +133,8 @@ rtnsServer <- function(
             )
 
             selectedRtns_cashAdjed <- reactive({
+                di()
+
                 selectedRtns_raw() %>%
                     mutate(
                         rtn = if (inclCash_rv()) cmltvRtn_inclCash

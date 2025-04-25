@@ -576,8 +576,10 @@ dataInitServer <- function(id) {
                                         rename(lbl = fund) %>%
                                         mutate(parent = paste(src, ctg)) %>%
                                         left_join(
-                                            rtns_anlzed_df %>%
-                                                filter(type == 'Fund'),
+                                            filter(
+                                                rtns_anlzed_df,
+                                                type == 'Fund'
+                                            ),
                                             by = c('lbl' = 'istmt')
                                         )
                                 ) %>%
@@ -634,6 +636,16 @@ dataInitServer <- function(id) {
                                         .default = '-'
                                     ) %>% paste(lbl)
                                 )
+
+                            hldgs_flat_df <<- hldgs_df %>%
+                                filter(
+                                    lbl %in% uniqueUas_sorted
+                                    | (
+                                        lbl %in% uniqueFunds_sorted
+                                        & !(lbl %in% names(uniqueUaGrps))
+                                    )
+                                ) %>%
+                                select(-c(id, parent))
 
                             # calculate cash val dynamically depending on the selected fund
                             # because there are too many possible choices, it's difficult to pre calculate for all of them
