@@ -85,6 +85,8 @@ MAX_COLOR_DIFF <- .1
 MIN_LUM_DIFF <- .3
 
 MAX_HUE_ROTATION <- 5  # Maximum degrees to rotate
+
+BG_COLOR <- "#222"
 # end consts
 
 # Convert RGB to hex color

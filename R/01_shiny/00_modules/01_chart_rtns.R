@@ -55,10 +55,13 @@ rtnsServer <- function(
                 sprintf("Shiny.setInputValue('%s', false);", ns("enableIpts")) %>% shinyjs::runjs()
             }
 
-            ei <- function() {
+            # Observer to handle plot status changes
+            observe({
+                req(input$enableIpts)
+
                 enableIpts()
                 shinyjs::enable('selectedDate')
-            }
+            })
             
             isChanged_istmts <- F
             isChanged_date <- F
@@ -244,25 +247,12 @@ rtnsServer <- function(
                 }
             )
 
-            # Observer to handle plot status changes
-            observe({
-                req(input$enableIpts)
-
-                ei()
-            })
-
             output$plot <- renderPlotly({
                 df <- selectedRtns_rebased()
 
                 # Check if no series available
                 if (nrow(df) == 0) {
-                    plotly_empty() %>%
-                        layout(
-                            title = "No return data available for selected instruments/period",
-                            plot_bgcolor = BG_COLOR,
-                            paper_bgcolor = BG_COLOR,
-                            font = list(color = '#eee')
-                        ) %>%
+                    genMtPlot("No return data available for selected instruments / period") %>%
                         return()
                 }
 

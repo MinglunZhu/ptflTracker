@@ -107,28 +107,3 @@ if(nrow(f) == 0) {
                 }
                 })}
             )
-
-createPieLayout <- function(
-  PLOT, TITLE,
-  TITLE_FONT = list(
-    family = "Arial",
-    size = 18,
-    color = "#eee"
-  ),
-  FONT = list(color = '#eee'),
-  BG_COLOR = '#222'
-) {
-  layout(
-    PLOT,
-    title = list(
-      text = TITLE,
-      font = TITLE_FONT
-    ),
-    paper_bgcolor = BG_COLOR,
-    plot_bgcolor = BG_COLOR,
-    font = FONT,
-    showlegend = F,
-    # Add these for complete dark mode
-    scene = list(bgcolor = BG_COLOR)
-  )
-}

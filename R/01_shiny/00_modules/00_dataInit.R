@@ -630,7 +630,7 @@ dataInitServer <- function(id) {
                                 ) %>%
                                 arrange(val) %>%
                                 mutate(
-                                    lbl = case_when(
+                                    lbl_icon = case_when(
                                         rtn_anlzed > 0 ~ '▲',
                                         rtn_anlzed < 0 ~ '▼',
                                         .default = '-'
@@ -638,14 +638,8 @@ dataInitServer <- function(id) {
                                 )
 
                             hldgs_flat_df <<- hldgs_df %>%
-                                filter(
-                                    lbl %in% uniqueUas_sorted
-                                    | (
-                                        lbl %in% uniqueFunds_sorted
-                                        & !(lbl %in% names(uniqueUaGrps))
-                                    )
-                                ) %>%
-                                select(-c(id, parent))
+                                filter(lbl %in% c(unique_tickers, 'Cash')) %>%
+                                select(-c(id, parent, lbl))
 
                             # calculate cash val dynamically depending on the selected fund
                             # because there are too many possible choices, it's difficult to pre calculate for all of them

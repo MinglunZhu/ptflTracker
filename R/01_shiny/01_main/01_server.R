@@ -1,5 +1,4 @@
 # consts
-BG_COLOR <- "#222"
 # end consts
 
 # Server Logic

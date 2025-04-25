@@ -263,3 +263,13 @@ genSlctGrps <- function(DF, GRP_COL, SLCT_COL, GRP_LVLS, SLCT_LVLS, GRP_NAME) {
     # Split the named vector into a list based on the ordered factor 'grp'
     base::split(df$grp)
 }
+
+genMtPlot <- function(TTL) {
+  plotly_empty() %>%
+    layout(
+        title = TTL,
+        plot_bgcolor = BG_COLOR,
+        paper_bgcolor = BG_COLOR,
+        font = list(color = '#eee')
+    )
+}
