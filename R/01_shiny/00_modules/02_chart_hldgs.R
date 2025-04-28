@@ -186,7 +186,7 @@ hldgsServer <- function(
             })
 
             plot_sort <- F
-            plot_textInfo <- 'label'
+            plot_textInfo <- 'label+percent parent'
 
             output$plot_hierarchical <- renderPlotly({
                 # Calculate fund values for the selected date
@@ -251,8 +251,8 @@ hldgsServer <- function(
                             "<b>%{label}</b><br>",
                             # for privacy reasons, let's hide this for now
                             #"Value: %{value:$,.0f}<br>",
-                            "Pctg of Parent: %{percentParent:.1%}<br>",
-                            "Pctg of Entry: %{percentEntry:.1%}<br>",
+                            "Pctg of Parent: %{percentParent:.2%}<br>",
+                            "Pctg of Entry: %{percentEntry:.2%}<br>",
                             "Anlzed Rtn: %{customdata:.2%}", # Assumes ann_rtn is passed to customdata
                             "<extra></extra>" # Hide the trace info
                         ),
@@ -406,7 +406,7 @@ hldgsServer <- function(
                         add <- "col-sm-6"
 
                         plot_sort <<- F
-                        plot_textInfo <<- 'label'
+                        plot_textInfo <<- 'label+percent parent'
                     }
 
                     # change col size before change plot
@@ -472,22 +472,57 @@ hldgsServer <- function(
                     #   )
                     # )
 
+                max_rtn <- max(
+                    h$rtn_anlzed,
+                    na.rm = T
+                )
+                min_rtn <- min(
+                    h$rtn_anlzed,
+                    na.rm = T
+                )
+                zero <- pmax(0 - min_rtn, 0) / (max_rtn - min_rtn)
+
                 h %>%
+                    mutate(
+                        color_bdr = genCyberColors_pfmc(rtn_anlzed, max_rtn, min_rtn),
+                        text = sprintf(
+                            '%sAnnualized return: %.2f%%',
+                            case_when(
+                                rtn_anlzed == max_rtn ~ '★ Best Performer<br>',
+                                rtn_anlzed == min_rtn ~ '✖ Worst Performer<br>',
+                                .default = ''
+                            ),
+                            rtn_anlzed * 100
+                        )
+                    ) %>%
                     plot_ly(
                         labels = ~lbl_icon,
                         values = ~val,
                         type = 'pie',
                         hole = 0.6,
+
                         textinfo = 'label+percent',
                         insidetextorientation = 'radial',
+
+                        customdata = ~rtn_anlzed, # Pass ID for click events
+                        #hoverinfo = 'label+percent',
+                        hovertemplate = paste(
+                            "<b>%{label}</b><br>",
+                            # for privacy reasons, let's hide this for now
+                            #"Value: %{value:$,.0f}<br>",
+                            "Size Pctg: %{percent:.2%}<br>",
+                            "Anlzed Rtn: %{customdata:.2%}", # Assumes ann_rtn is passed to customdata
+                            "<extra></extra>" # Hide the trace info
+                        ),
+
                         marker = list(
-                        line = list(
-                            color = 'rgba(255, 255, 255, 0.3)',  # White glow effect
-                            width = 1
+                            line = list(
+                                color = ~color_bdr,
+                                width = BDR_WDT
+                            ),
+                            colors = colorRampPalette(c("#ffffff", "#e6e6ff", "#ccccff", "#b3b3ff"))(nrow(h)) # White to light blue gradient
                         ),
-                        colors = colorRampPalette(c("#ffffff", "#e6e6ff", "#ccccff", "#b3b3ff"))(nrow(h)) # White to light blue gradient
-                        ),
-                        hoverinfo = 'label+percent',
+
                         opacity = 0.95,
                         direction = 'clockwise'
                     ) %>%

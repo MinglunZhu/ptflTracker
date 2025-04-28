@@ -639,7 +639,11 @@ dataInitServer <- function(id) {
 
                             hldgs_flat_df <<- hldgs_df %>%
                                 filter(lbl %in% c(unique_tickers, 'Cash')) %>%
-                                select(-c(id, parent, lbl))
+                                group_by(lbl_icon, date, isInclCash, rtn_anlzed) %>%
+                                summarise(
+                                    val = sum(val),
+                                    .groups = 'drop'
+                                )
 
                             # calculate cash val dynamically depending on the selected fund
                             # because there are too many possible choices, it's difficult to pre calculate for all of them
