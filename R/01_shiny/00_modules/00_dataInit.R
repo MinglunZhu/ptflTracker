@@ -629,21 +629,21 @@ dataInitServer <- function(id) {
                                     .groups = 'drop'
                                 ) %>%
                                 arrange(val) %>%
-                                mutate(
-                                    lbl_icon = case_when(
-                                        rtn_anlzed > 0 ~ '▲',
-                                        rtn_anlzed < 0 ~ '▼',
-                                        .default = '-'
-                                    ) %>% paste(lbl)
-                                )
+                                addIcon_pfmc()
 
                             hldgs_flat_df <<- hldgs_df %>%
                                 filter(lbl %in% c(unique_tickers, 'Cash')) %>%
-                                group_by(lbl_icon, date, isInclCash, rtn_anlzed) %>%
+                                group_by(lbl, date, isInclCash) %>%
                                 summarise(
                                     val = sum(val),
+                                    rtn_anlzed = mean(
+                                        rtn_anlzed,
+                                        na.rm = T
+                                    ),
                                     .groups = 'drop'
-                                )
+                                ) %>%
+                                addIcon_pfmc() %>%
+                                select(-lbl)
 
                             # calculate cash val dynamically depending on the selected fund
                             # because there are too many possible choices, it's difficult to pre calculate for all of them

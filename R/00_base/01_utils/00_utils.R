@@ -273,3 +273,14 @@ genMtPlot <- function(TTL) {
         font = list(color = '#eee')
     )
 }
+
+addIcon_pfmc <- function(DF) {
+  DF %>%
+    mutate(
+        lbl_icon = case_when(
+            rtn_anlzed > 0 ~ '▲',
+            rtn_anlzed < 0 ~ '▼',
+            .default = '-'
+        ) %>% paste(lbl)
+    )
+}

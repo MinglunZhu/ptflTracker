@@ -500,6 +500,10 @@ hldgsServer <- function(
                         hole = 0.6,
 
                         textinfo = 'label+percent',
+                        textfont = list(
+                            family = "Orbitron, monospace",
+                            color = ~color_bdr
+                        ),
                         insidetextorientation = 'radial',
 
                         customdata = ~rtn_anlzed, # Pass ID for click events
@@ -518,7 +522,7 @@ hldgsServer <- function(
                                 color = ~color_bdr,
                                 width = BDR_WDT
                             ),
-                            colors = colorRampPalette(c("#ffffff", "#e6e6ff", "#ccccff", "#b3b3ff"))(nrow(h)), # White to light blue gradient
+                            colors = colorRampPalette(c("#0a0a0a", "#121212", "#1a1a1a", "#222222"))(nrow(h)), # Dark tech black gradient
                             pad = list(
                                 #t = 10, 
                                 b = 0, 
