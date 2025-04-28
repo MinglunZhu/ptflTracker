@@ -1,5 +1,4 @@
-annualized return for flat chart
-waffle, single stacked bar chart
+single stacked bar chart
 AI gen key insights and recommendations
 Avoid multiple concurrent downloads when multiple users start connect to a session (use global flag to check if a download is in progress)
 Make settings columns wrap for narrow screens

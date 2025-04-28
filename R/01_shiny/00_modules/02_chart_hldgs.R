@@ -41,7 +41,7 @@ hldgsUI_slct_plotType <- function(id) {
         tags$li(
             selectInput(
                 ns("selectedChartType_flat"), 'Select Chart Type (Flat):',
-                choices = c("Pie", "Waffle", 'Stacked Bar'),
+                choices = c("Pie", 'Stacked Bar'),
                 selected = "Pie"
             )
         )
@@ -95,16 +95,21 @@ hldgsServer <- function(
                 value = end_date
             )
 
-            di <- function() {
+            di <- function(HIER = T, FLAT = T) {
                 disableIpts()
 
                 # without asis param, the namespace will be added to id
                 shinyjs::disable('selectedDate')
-                shinyjs::disable('selectedChartType_hierarchical')
-                shinyjs::disable('selectedChartType_flat')
 
-                sprintf("Shiny.setInputValue('%s', false);", ns("enableIpts_hierarchical")) %>% shinyjs::runjs()
-                sprintf("Shiny.setInputValue('%s', false);", ns("enableIpts_flat")) %>% shinyjs::runjs()
+                if (HIER) {
+                    shinyjs::disable('selectedChartType_hierarchical')
+                    sprintf("Shiny.setInputValue('%s', false);", ns("enableIpts_hierarchical")) %>% shinyjs::runjs()
+                }
+
+                if (FLAT) {
+                    shinyjs::disable('selectedChartType_flat')
+                    sprintf("Shiny.setInputValue('%s', false);", ns("enableIpts_flat")) %>% shinyjs::runjs()
+                }
             }
 
             # Observer to handle plot status changes
@@ -381,12 +386,12 @@ hldgsServer <- function(
                     ))
             })
 
-            plot_proxy <- plotlyProxy("plot_hierarchical", session)
+            plot_proxy_hierarchical <- plotlyProxy("plot_hierarchical", session)
 
             observeEvent(
                 input$selectedChartType_hierarchical,
                 {
-                    di()
+                    di(FLAT = F)
 
                     # the idea is that the circular nature of the surburst chart
                     # means that its width is limited by its height
@@ -437,7 +442,7 @@ hldgsServer <- function(
                     shinyjs::runjs('window.chartTypeChged = true;')
 
                     plotlyProxyInvoke(
-                        plot_proxy, "restyle",
+                        plot_proxy_hierarchical, "restyle",
                         list(
                             type = tolower(t),
                             sort = plot_sort,
@@ -448,20 +453,13 @@ hldgsServer <- function(
                 ignoreInit = T
             )
 
-            observeEvent(
-                showColorBar_rv(),
-                { plotlyProxyInvoke( plot_proxy, "restyle", list(marker.showscale = showColorBar_rv()) ) },
-                ignoreInit = T
-            )
-
             #Render tickers pie chart.
             output$plot_flat <- renderPlotly({
                 h <- selectedHldgVals_cashAdj_flat()
 
                 if (nrow(h) == 0) {
                     # Return empty plot if no data
-                    genMtPlot("No flat holdings data available for selected date") %>%
-                        return()
+                    genMtPlot("No flat holdings data available for selected date") %>% return()
                 }
                     # fn <- if_else(
                     #   length(sfs) == 0,
@@ -520,11 +518,62 @@ hldgsServer <- function(
                                 color = ~color_bdr,
                                 width = BDR_WDT
                             ),
-                            colors = colorRampPalette(c("#ffffff", "#e6e6ff", "#ccccff", "#b3b3ff"))(nrow(h)) # White to light blue gradient
+                            colors = colorRampPalette(c("#ffffff", "#e6e6ff", "#ccccff", "#b3b3ff"))(nrow(h)), # White to light blue gradient
+                            pad = list(
+                                #t = 10, 
+                                b = 0, 
+                                l = 0, 
+                                r = 0
+                            )
                         ),
 
                         opacity = 0.95,
                         direction = 'clockwise'
+                    ) %>%
+                    # --- Add the dummy trace for the color bar ---
+                    add_trace(
+                        type = 'heatmap',
+                        # Provide data covering the range for the scale
+                        z = list(c(min_rtn, max_rtn)), 
+                        # Use the performance colorscale
+                        colorscale = list(
+                            list(0, PFMC_RED),  # Red for negative
+                            list(zero, light_red),
+                            list(zero, light_green),
+                            list(1, PFMC_GREEN)   # Cyan for positive
+                        ), 
+                        # Set min/max for the scale
+                        zmin = min_rtn, 
+                        zmax = max_rtn,
+                        # Configure the colorbar appearance
+                        colorbar = list(
+                            title = list(
+                                text = "Annualized<br>Return",  # Use <br> for line breaks
+                                font = list(
+                                    family = "Orbitron, monospace",
+                                    color = '#00fff2',
+                                    size = 12  # Adjust size if needed
+                                )
+                            ),
+                            tickfont = list(
+                                family = "Orbitron, monospace",
+                                color = '#00fff2'
+                            ),
+                            tickformat = ".0%",
+                            #len = 0.8,  # Length of the colorbar
+                            thickness = BDR_WDT,  # Width of the colorbar, match border
+                            outlinewidth = 0,
+                            bordercolor = 'rgba(255, 255, 255, 0.3)'
+                            #bgcolor = 'rgba(0, 0, 0, 0.3)'
+                        ),
+                        # Control visibility with showColorBar_rv()
+                        showscale = showColorBar_rv() %>% isolate()
+                        # Make the heatmap itself invisible
+                        #visible = F
+                        , opacity = 0,
+                        # --- Also disable hover ---
+                        hoverinfo = 'none',
+                        hovertemplate = NULL
                     ) %>%
                     layout(
                         title = list(
@@ -549,6 +598,20 @@ hldgsServer <- function(
                             b = 0,
                             #t = 30,
                             pad = 0
+                        ),
+
+                        # --- Hide axes generated by the heatmap ---
+                        xaxis = list(
+                            visible = FALSE,
+                            showgrid = FALSE,
+                            zeroline = FALSE,
+                            showticklabels = FALSE
+                        ),
+                        yaxis = list(
+                            visible = FALSE,
+                            showgrid = FALSE,
+                            zeroline = FALSE,
+                            showticklabels = FALSE
                         )
                     ) %>%
                     onRender(sprintf(
@@ -565,6 +628,17 @@ hldgsServer <- function(
                         ns("enableIpts_flat")
                     ))
             })
+
+            plot_proxy_flat <- plotlyProxy("plot_flat", session)
+
+            observeEvent(
+                showColorBar_rv(),
+                { 
+                    plotlyProxyInvoke( plot_proxy_hierarchical, "restyle", list(marker.showscale = showColorBar_rv()) )
+                    plotlyProxyInvoke(plot_proxy_flat, "restyle", list(showscale = showColorBar_rv()), 1)
+                },
+                ignoreInit = T
+            )
         }
     ) # End moduleServer
 }
