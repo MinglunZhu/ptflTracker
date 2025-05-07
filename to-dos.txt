@@ -1,7 +1,7 @@
-single stacked bar chart
+Make settings columns wrap for narrow screens
 AI gen key insights and recommendations
 Avoid multiple concurrent downloads when multiple users start connect to a session (use global flag to check if a download is in progress)
-Make settings columns wrap for narrow screens
+
 
 
 

@@ -30,20 +30,11 @@ hldgsUI_sldr <- function(id) {
 hldgsUI_slct_plotType <- function(id) {
     ns <- NS(id) # Namespace function
 
-    tagList(
-        tags$li(
-            selectInput(
-                ns("selectedChartType_hierarchical"), 'Select Chart Type (Hierarchical):',
-                choices = c("Sunburst", "Treemap", 'Icicle'),
-                selected = "Sunburst"
-            )
-        ),
-        tags$li(
-            selectInput(
-                ns("selectedChartType_flat"), 'Select Chart Type (Flat):',
-                choices = c("Pie", 'Stacked Bar'),
-                selected = "Pie"
-            )
+    tags$li(
+        selectInput(
+            ns("selectedChartType_hierarchical"), 'Select Chart Type (Hierarchical):',
+            choices = c("Sunburst", "Treemap", 'Icicle'),
+            selected = "Sunburst"
         )
     )
 }
@@ -388,58 +379,67 @@ hldgsServer <- function(
 
             plot_proxy_hierarchical <- plotlyProxy("plot_hierarchical", session)
 
+            switchColWdt <- function(FULL = T) {
+                rmv <- "col-sm-6"
+                add <- "col-sm-12"
+
+                if (!FULL) {
+                    rmv <- "col-sm-12"
+                    add <- "col-sm-6"
+                }
+
+                # Target the column using its ID within the namespace
+                id_col_hierarchical <- paste0("#", ns("col_hierarchical"))
+                id_col_flat <- paste0("#", ns("col_flat"))
+
+                shinyjs::removeClass(
+                    selector = id_col_hierarchical,
+                    class = rmv
+                )
+                shinyjs::addClass(
+                    selector = id_col_hierarchical,
+                    class = add
+                )
+                shinyjs::removeClass(
+                    selector = id_col_flat,
+                    class = rmv
+                )
+                shinyjs::addClass(
+                    selector = id_col_flat,
+                    class = add
+                )
+
+                # Construct the JavaScript call to resize BOTH plots
+                # Run the JavaScript
+                shinyjs::runjs('window.chartTypeChged = true;')
+            }
+
             observeEvent(
                 input$selectedChartType_hierarchical,
                 {
                     di(FLAT = F)
+
+                    plot_sort <<- T
+                    plot_textInfo <<- 'label+text+percent parent+percent entry'
+
+                    t <- input$selectedChartType_hierarchical
+
+                    # change col size before change plot
+                    # so that new plot uses the new size
 
                     # the idea is that the circular nature of the surburst chart
                     # means that its width is limited by its height
                     # so it can not take the full available width
                     # so we make it only have the screen
                     # but for the other charts we want them to take the full width
-                    rmv <- "col-sm-6"
-                    add <- "col-sm-12"
-                    
-                    plot_sort <<- T
-                    plot_textInfo <<- 'label+text+percent parent+percent entry'
-
-                    t <- input$selectedChartType_hierarchical
-
                     if (t == 'Sunburst') {
-                        rmv <- "col-sm-12"
-                        add <- "col-sm-6"
+                        switchColWdt(FULL = F)
 
                         plot_sort <<- F
                         plot_textInfo <<- 'label+percent parent'
+                    } else {
+                        switchColWdt()
                     }
-
-                    # change col size before change plot
-                    # so that new plot uses the new size
-                    # Target the column using its ID within the namespace
-                    id_col_hierarchical <- paste0("#", ns("col_hierarchical"))
-                    id_col_flat <- paste0("#", ns("col_flat"))
-
-                    shinyjs::removeClass(
-                        selector = id_col_hierarchical,
-                        class = rmv
-                    )
-                    shinyjs::addClass(
-                        selector = id_col_hierarchical,
-                        class = add
-                    )
-                    shinyjs::removeClass(
-                        selector = id_col_flat,
-                        class = rmv
-                    )
-                    shinyjs::addClass(
-                        selector = id_col_flat,
-                        class = add
-                    )
-
-                    # Construct the JavaScript call to resize BOTH plots
-                    # Run the JavaScript
-                    shinyjs::runjs('window.chartTypeChged = true;')
 
                     plotlyProxyInvoke(
                         plot_proxy_hierarchical, "restyle",
@@ -634,6 +634,57 @@ hldgsServer <- function(
             })
 
             plot_proxy_flat <- plotlyProxy("plot_flat", session)
+
+            observeEvent(
+                input$selectedChartType_flat,
+                {
+                    di(HIER = F)
+
+                    o <- NULL
+                    tp <- 'inside'
+                    
+                    bm <- NULL
+                    sl <- F
+
+                    # the idea is that the circular nature of the surburst chart
+                    # means that its width is limited by its height
+                    # so it can not take the full available width
+                    # so we make it only half the screen
+                    # but for the other charts we want them to take the full width
+                    t <- input$selectedChartType_flat
+
+                    if (t == 'Stacked Bar') {
+                        t <- 'bar'
+                        o <- 'h'
+                        tp <- 'auto'
+                        
+                        bm <- 'stack'
+                        sl <- T
+
+                        switchColWdt()
+                    } else {
+                        switchColWdt(FULL = F)
+                    }
+
+                    plotlyProxyInvoke(
+                        plot_proxy_flat, "restyle",
+                        list(
+                            type = tolower(t),
+                            orientation = o,
+                            textposition = tp
+                        )
+                    )
+
+                    plotlyProxyInvoke(
+                        plot_proxy_flat, "relayout",
+                        list(
+                            barmode = bm,  # Stack the bars, if NULL, then don't stack them
+                            showlegend = sl  # Show legend for bars
+                        )
+                    )
+                },
+                ignoreInit = T
+            )
 
             observeEvent(
                 showColorBar_rv(),
