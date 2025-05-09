@@ -199,7 +199,6 @@ dataInitServer <- function(id) {
                                     by = c("date", "cur")
                                 ) %>%
                                 mutate(
-                                    adj_unitCnt = unitCnt,
                                     # For HKD stocks, the trade amount is in USD. Convert it back to HKD.
                                     amt_lclCur = if_else(cur == 'HKD', amt * xchgRate_usd2Lc, amt), #amt in local currency
                                     amt_usd = amt_lclCur / xchgRate_usd2Lc
@@ -259,7 +258,7 @@ dataInitServer <- function(id) {
                             incProg("Calculating values...")
 
                             # 1. Create a complete grid of all dates and tickers in the subset
-                            vals_df <-trades_inited_df %>%
+                            vals_df <- trades_inited_df %>%
                                 distinct(src, ctg, fund, yahoo_tkr) %>%
                                 tidyr::crossing(date = all_dates) %>%
                                 # 3. Join trades onto the grid and calculate cumulative holdings
@@ -271,7 +270,7 @@ dataInitServer <- function(id) {
                                             adj_unitCnt = sum(
                                                 adj_unitCnt, 
                                                 na.rm = T
-                                            ),
+                                            ) %>% round(maxDecimals),
                                             .groups = 'drop'
                                         ) %>%
                                         filter(adj_unitCnt != 0),
@@ -296,6 +295,12 @@ dataInitServer <- function(id) {
                                 mutate(val = cmltvUnitCnt * price_usd) %>%
                                 ungroup() %>%
                                 select(src, ctg, fund, tkr, date, cmltvUnitCnt, val) 
+
+                            vals_df %>%
+                                filter(
+                                    tkr == '3988.HK'
+                                ) %>%
+                                write_csv("opts/debug/vals_df.csv")
 
                             message("Future: Calculating returns...")
 
