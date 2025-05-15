@@ -65,9 +65,11 @@ rtnsServer <- function(
             
             isChanged_istmts <- F
             isChanged_date <- F
+            isChanged_cash <- F
 
             needUd_istmts <- reactiveVal(NULL)
             needUd_date <- reactiveVal(NULL)
+            needUd_cash <- reactiveVal(NULL)
 
             observeEvent(
                 list(enableUd_plots_rv(), selectedChart_rv()),
@@ -79,6 +81,12 @@ rtnsServer <- function(
 
                     if (isChanged_istmts) { 
                         Sys.time() %>% needUd_istmts()
+
+                        return()
+                    }
+
+                    if (isChanged_cash) {
+                        Sys.time() %>% needUd_cash()
 
                         return()
                     }
@@ -115,6 +123,21 @@ rtnsServer <- function(
                 ignoreInit = T
             )
 
+            observeEvent(
+                inclCash_rv(),
+                {
+                    isChanged_cash <<- T
+
+                    req(
+                        enableUd_plots_rv(),
+                        selectedChart_rv() == 'Returns'
+                    )
+
+                    Sys.time() %>% needUd_cash()
+                },
+                ignoreInit = T
+            )
+
             selectedRtns_raw <- eventReactive(
                 needUd_istmts(),
                 {
@@ -135,16 +158,21 @@ rtnsServer <- function(
                 }
             )
 
-            selectedRtns_cashAdjed <- reactive({
-                di()
+            selectedRtns_cashAdjed <- eventReactive(
+                list(selectedRtns_raw(), needUd_cash()),
+                {
+                    isChanged_cash <<- F
 
-                selectedRtns_raw() %>%
-                    mutate(
-                        rtn = if (inclCash_rv()) cmltvRtn_inclCash
-                        else cmltvRtn_xcluCash
-                    ) %>%
-                    select(-c(cmltvRtn_inclCash, cmltvRtn_xcluCash))
-            })
+                    di()
+
+                    selectedRtns_raw() %>%
+                        mutate(
+                            rtn = if (inclCash_rv()) cmltvRtn_inclCash
+                            else cmltvRtn_xcluCash
+                        ) %>%
+                        select(-c(cmltvRtn_inclCash, cmltvRtn_xcluCash))
+                }
+            )
 
             # normal variable as no reaction is needed
             # if using reactive val, it would trigger the related funciton again
