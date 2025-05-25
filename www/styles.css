@@ -124,6 +124,7 @@ section.content { padding: 0; }
 }*/
 .settings-columns {
   display: flex;
+  flex-wrap: wrap;
 }
 
 /*.settings-column > li {
