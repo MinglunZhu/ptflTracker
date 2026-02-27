@@ -6,7 +6,8 @@ TOLERANCE <- .25
 BENCH_MARKS <- list(
   `S&P 500` = "^GSPC",
   `Nasdaq 100` = "^NDX",
-  `S&P 500 Xclu Info Tech` = 'SPXT'
+  `S&P 500 Xclu Info Tech` = 'SPXT',
+  `Mag 7` = 'MAGS'
 )
 
 NAMES_BMS <- names(BENCH_MARKS)

@@ -367,7 +367,7 @@ dataInitServer <- function(id) {
                                 ) %>%
                                 mutate(
                                     val_cash = sttgCash + cmltvCf_cashAcc,
-                                    cmltvRtn_inclCash = ((val + val_cash) / sttgCash) - 1
+                                    cmltvRtn_inclCash = ( (val + val_cash) / sttgCash ) - 1
                                 ) %>%
                                 ungroup()
 
@@ -424,7 +424,7 @@ dataInitServer <- function(id) {
                                     # Calculate the sum of log growth factors (more stable than product)
                                     # Add a very small number to handle potential returns of exactly -1 (100% loss)
                                     # Or filter out rtn_xcluCash <= -1 if that's more appropriate.
-                                    log_growth_factors = sum( log(1 + pmax(rtn_xcluCash, -0.999999)) ),
+                                    log_growth_factors = sum( log( 1 + pmax(rtn_xcluCash, -0.999999) ) ),
                                     dayCnt = n(), # Count the number of valid return days
                                     .groups = 'drop' # Drop grouping after summarising
                                 ) %>%

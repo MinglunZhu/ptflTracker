@@ -9,33 +9,21 @@ BDR_WDT <- 1
 
 # UI Function for the holdings Chart Module
 hldgsUI_sldr <- function(id) {
-    ns <- NS(id) # Namespace function
-
-    tags$li(
-        sliderInput(
-            ns("selectedDate"), "Select Date:",
-            min = start_date,
-            max = RUN_DATE,
-            value = RUN_DATE,
-            timeFormat = "%Y-%m-%d",
-            width = "100%",
-            animate = animationOptions(
-                interval = 1000,   # milliseconds between frames
-                loop = T      # continue playing in a loop
-            )
-        ) # end sliderInput
-    )
+    id |>
+        # Namespace function
+        NS() |>
+        genSldr_date(VAL = RUN_DATE)
 }
 
 hldgsUI_slct_plotType <- function(id) {
-    ns <- NS(id) # Namespace function
-
     tags$li(
-        selectInput(
-            ns("selectedChartType_hierarchical"), 'Select Chart Type (Hierarchical):',
-            choices = c("Sunburst", "Treemap", 'Icicle'),
-            selected = "Sunburst"
-        )
+        # Namespace function
+        NS(id)('selectedChartType_hierarchical') |>
+            selectInput(
+                'Select Chart Type (Hierarchical):',
+                choices = c("Sunburst", "Treemap", 'Icicle'),
+                selected = "Sunburst"
+            )
     )
 }
 
@@ -86,10 +74,14 @@ hldgsServer <- function(
                 value = end_date
             )
 
-            di <- function(HIER = T, FLAT = T) {
+            di <- function(
+                HIER = T, 
+                FLAT = T
+            ) {
                 disableIpts()
 
                 # without asis param, the namespace will be added to id
+                shinyjs::disable('selectedDatePicker')
                 shinyjs::disable('selectedDate')
 
                 if (HIER) {
@@ -108,6 +100,8 @@ hldgsServer <- function(
                 req(input$enableIpts_hierarchical, input$enableIpts_flat)
 
                 enableIpts()
+
+                shinyjs::enable('selectedDatePicker')
                 shinyjs::enable('selectedDate')
                 shinyjs::enable('selectedChartType_hierarchical')
                 shinyjs::enable('selectedChartType_flat')
@@ -130,15 +124,41 @@ hldgsServer <- function(
                 ignoreInit = T
             )
 
+            # Sync date picker with slider
+            observeEvent(
+                input$selectedDatePicker,
+                {
+                    # the disable inputs will trigger this observer
+                    # which sets the value to date of length 0
+                    req(
+                        length(input$selectedDatePicker) > 0,
+                        !identical(input$selectedDate, input$selectedDatePicker)
+                    )
+                    
+                    updateSliderInput(
+                        session, "selectedDate",
+                        value = input$selectedDatePicker
+                    )
+                },
+                ignoreInit = T
+            )
+
             observeEvent(
                 input$selectedDate,
                 {
                     isChanged_date <<- T
 
-                    # date slider is only available in returns chart
-                    req(enableUd_plots_rv())
+                    if ( !identical(input$selectedDate, input$selectedDatePicker) ) {
+                        updateDateInput(
+                            session, "selectedDatePicker",
+                            value = input$selectedDate
+                        )
+                    }
 
-                    Sys.time() %>% needUd_date()
+                    # update if enable update is enabled
+                    req( enableUd_plots_rv() )
+
+                    Sys.time() |> needUd_date()
                 }
             )
 

@@ -1,33 +1,21 @@
 # UI Function for the Returns Chart Module
 rtnsUI_sldr <- function(id) {
-    ns <- NS(id) # Namespace function
-
-    tags$li(
-        sliderInput(
-            ns("selectedDate"), "Select Rebase Date:",
-            min = start_date,
-            max = RUN_DATE,
-            # default value is required
-            value = start_date,
-            timeFormat = "%Y-%m-%d", 
-            width = "100%",
-            animate = animationOptions(
-                interval = 1500,   # milliseconds between frames
-                loop = T      # continue playing in a loop
-            )
-        ) # end sliderInput
-    )
+    id |>
+        # Namespace function
+        NS() |>
+        genSldr_date(
+            "Select Rebase Date",
+            ANIM_ITV = 1500
+        )
 }
 
 rtnsUI_plot <- function(id) {
-    ns <- NS(id) # Namespace function
-    
-    shinycssloaders::withSpinner(
-        plotlyOutput(
-            ns("plot"),
-            height = "100vh"
-        )
-    )
+    # Namespace function
+    # id can not use |>
+    # to ensure it is evaled first before ('plot)
+    NS(id)('plot') |>
+        plotlyOutput(height = "100vh") |>
+        shinycssloaders::withSpinner()
 }
 
 # Server Function for the Returns Chart Module
@@ -41,6 +29,10 @@ rtnsServer <- function(
             ns <- session$ns
 
             message("Updating slider max to: ", end_date)
+            updateDateInput(
+                session, "selectedDatePicker",
+                max = end_date
+            )
             updateSliderInput(
                 session, "selectedDate",
                 max = end_date
@@ -50,9 +42,13 @@ rtnsServer <- function(
                 disableIpts()
 
                 # without asis param, the namespace will be added to id
+                shinyjs::disable('selectedDatePicker')
                 shinyjs::disable('selectedDate')
 
-                sprintf("Shiny.setInputValue('%s', false);", ns("enableIpts")) %>% shinyjs::runjs()
+                sprintf(
+                    "Shiny.setInputValue('%s', false);",
+                    ns("enableIpts")
+                ) |> shinyjs::runjs()
             }
 
             # Observer to handle plot status changes
@@ -60,6 +56,8 @@ rtnsServer <- function(
                 req(input$enableIpts)
 
                 enableIpts()
+
+                shinyjs::enable('selectedDatePicker')
                 shinyjs::enable('selectedDate')
             })
             
@@ -97,7 +95,12 @@ rtnsServer <- function(
             )
 
             observeEvent(
-                list(selectedSrcs_rv(), selectedCtgs_rv(), selectedFunds_rv(), selectedUas_rv()),
+                list(
+                    selectedSrcs_rv(),
+                    selectedCtgs_rv(),
+                    selectedFunds_rv(),
+                    selectedUas_rv()
+                ),
                 {
                     isChanged_istmts <<- T
 
@@ -110,15 +113,41 @@ rtnsServer <- function(
                 }
             )
 
+            # Sync date picker with slider
+            observeEvent(
+                input$selectedDatePicker,
+                {
+                    # the disable inputs will trigger this observer
+                    # which sets the value to date of length 0
+                    req(
+                        length(input$selectedDatePicker) > 0,
+                        !identical(input$selectedDate, input$selectedDatePicker)
+                    )
+                    
+                    updateSliderInput(
+                        session, "selectedDate",
+                        value = input$selectedDatePicker
+                    )
+                },
+                ignoreInit = T
+            )
+
             observeEvent(
                 input$selectedDate,
                 {
                     isChanged_date <<- T
 
-                    # date slider is only available in returns chart
-                    req(enableUd_plots_rv())
+                    if ( !identical(input$selectedDate, input$selectedDatePicker) ) {
+                        updateDateInput(
+                            session, "selectedDatePicker",
+                            value = input$selectedDate
+                        )
+                    }
 
-                    Sys.time() %>% needUd_date()
+                    # update if enable update is enabled
+                    req( enableUd_plots_rv() )
+
+                    Sys.time() |> needUd_date()
                 },
                 ignoreInit = T
             )
@@ -206,6 +235,10 @@ rtnsServer <- function(
                         return()
                     }
 
+                    updateDateInput(
+                        session, "selectedDatePicker",
+                        min = min_new
+                    )
                     updateSliderInput(
                         session, "selectedDate", # Target the correct slider
                         min = min_new                 # Set the new minimum
@@ -220,6 +253,8 @@ rtnsServer <- function(
                             crt == minDate_rtns_prv
                             & min_new < crt
                         ) {
+                            # we only need to update the slider
+                            # because date picker is synced with slider
                             updateSliderInput(
                                 session, "selectedDate", # Target the correct slider
                                 value = min_new               # Set the calculated value
@@ -315,7 +350,7 @@ rtnsServer <- function(
 
                 # only need custom x & y range if there is rebase
                 if (x_sd > start_date) {
-                    # it does matter if we isolate because end date would only be set
+                    # it doesn't matter if we isolate because end date would only be set
                     # at initialization.
                     x_ed <- end_date
 

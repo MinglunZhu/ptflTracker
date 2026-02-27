@@ -109,7 +109,7 @@ section.content { padding: 0; }
 
 
 /* Settings Dropdown Columns */
-.dropdown-menu,
+.dropdown-menu:not(.datepicker),
 .selectize-input + .selectize-dropdown {
   position: fixed !important;
   top: auto !important;
@@ -188,18 +188,46 @@ which prevents position fixed from working as intended */
 
 /* cyan transparent border */
 .selectize-input + .selectize-dropdown,
-.dropdown-menu, .selectize-input, .btn, .header-toggle { border-color: var(--border-cyan) !important; /* Use transparent border */ }
+.dropdown-menu, .selectize-input, .btn, .header-toggle,
+.shiny-date-input input { border-color: var(--border-cyan) !important; /* Use transparent border */ }
 
-/* input border */
+/* input options or items border
+selected and unselected */
 .selectize-input + .selectize-dropdown .option,
-.selectize-input .item {
+.selectize-input .item,
+.datepicker .prev:not(.disabled),
+.datepicker-switch,
+.datepicker .next:not(.disabled),
+.datepicker .day:not(.disabled),
+.datepicker .month:not(.disabled),
+.datepicker .year:not(.disabled),
+.datepicker .decade:not(.disabled) {
     border: 1px solid var(--slctIpt-border); /* Use faint border */
     border-radius: 3px;
 }
 
-/* small blur bg */
+/* unselected options in the dropdown (grey bg) */
+.selectize-input + .selectize-dropdown .option,
+.datepicker .prev:not(.disabled),
+.datepicker-switch,
+.datepicker .next:not(.disabled),
+.datepicker .day:not(.disabled):not(.active),
+.datepicker .month:not(.disabled):not(.active),
+.datepicker .year:not(.disabled):not(.active),
+.datepicker .decade:not(.disabled):not(.active) {background-color: var(--slctIpt-off-bg); /* Use unselected background */}
+
+/* Selected items within the input box (cyan bg) */
+.shiny-date-input input,
+.datepicker .active,
+.selectize-input .item { background-color: var(--slctIpt-on-bg) !important; /* Use selected background */ }
+
+/* small blur bg
+header and selected */
 .selectize-input + .selectize-dropdown .optgroup-header,
 .selectize-input .item,
+.shiny-date-input input,
+.datepicker .dow,
+.datepicker .active,
 .btn {
     backdrop-filter: var(--small-blur);
     -webkit-backdrop-filter: var(--small-blur);
@@ -214,10 +242,12 @@ which prevents position fixed from working as intended */
 /* Override hover/active states for dropdown items if needed */
 /* hover/active bg */
 .selectize-dropdown-content div:hover,
-.dropdown-menu > li > a:hover { background-color: rgba(68, 68, 68, 0.4) !important; /* Slightly less transparent #444 */ }
+.dropdown-menu > li > a:hover,
+.datepicker:hover { background-color: rgba(68, 68, 68, 0.4) !important; /* Slightly less transparent #444 */ }
 
 /* hover/active border*/
-.dropdown-menu > li > a:hover { border-color: #666 !important; /* Keep border slightly darker */ }
+.dropdown-menu > li > a:hover,
+.datepicker:hover { border-color: #666 !important; /* Keep border slightly darker */ }
 
 /* individual elements */
 .header-toggle {
@@ -231,27 +261,27 @@ which prevents position fixed from working as intended */
 /* Ensure logo and navbar within header inherit or use the transparent background */
 /* (They likely will inherit, but specifying doesn't hurt if needed) */
 .main-header .logo,
-.main-header .navbar {
-    background-color: transparent !important; /* Inherit from .main-header */
-}
+.main-header .navbar {background-color: transparent !important; /* Inherit from .main-header */}
 
 /* Make Action Buttons semi-transparent */
 .btn { background-color: rgba(68, 68, 68, 0.3) !important; /* Semi-transparent darker grey */ }
 .btn:hover { background-color: rgba(85, 85, 85, 0.5) !important; /* Less transparent on hover */ }
 
 /* Keep optgroup headers distinct but slightly transparent */
-.selectize-input + .selectize-dropdown .optgroup-header { background-color: rgba(64, 64, 64, 0.7) !important; /* Semi-transparent #404040 */ }
-
-/* Style individual unselected options in the dropdown */
-.selectize-input + .selectize-dropdown .option { background-color: var(--slctIpt-off-bg); /* Use unselected background */ }
-
-/* Style selected items displayed within the input box */
-.selectize-input .item { background-color: var(--slctIpt-on-bg) !important; /* Use selected background */ }
+.selectize-input + .selectize-dropdown .optgroup-header,
+.datepicker .dow {background-color: rgba(64, 64, 64, 0.7) !important; /* Semi-transparent #404040 */}
 
 /* Override hover/active states for UNSELECTED dropdown items specifically */
 /* Keep the selected item style distinct */
 .selectize-input + .selectize-dropdown .option:hover,
-.selectize-input + .selectize-dropdown .active {
+.selectize-input + .selectize-dropdown .active,
+.datepicker .prev:not(.disabled):hover,
+.datepicker-switch:hover,
+.datepicker .next:not(.disabled):hover,
+.datepicker .day:not(.disabled):not(.active):hover,
+.datepicker .month:not(.disabled):not(.active):hover,
+.datepicker .year:not(.disabled):not(.active):hover,
+.datepicker .decade:not(.disabled):not(.active):hover {
     background-color: rgba(85, 85, 85, 0.7) !important; /* Slightly less transparent gray on hover */
     border-color: rgba(150, 150, 150, 0.6) !important; /* Slightly brighter border on hover */
 }
@@ -273,7 +303,7 @@ which prevents position fixed from working as intended */
 
 
 
-/* Glass Effect Slider and checkboxes */
+/* Glass Effect Slider, date input, and checkboxes */
 .irs--shiny { margin: 0 20px; }
 
 .navbar-nav input[type='checkbox'],
@@ -327,8 +357,9 @@ which prevents position fixed from working as intended */
 .irs--shiny .irs-max,
 .irs--shiny .irs-single,
 .irs--shiny .irs-grid-text,
-.navbar-nav .checkbox span {
-  background: rgba(0, 0, 0, 0.7);
+.navbar-nav .checkbox span,
+.shiny-date-input input:focus {
+  background: rgba(0, 0, 0, 0.7) !important;
 
   border-radius: 4px;
   padding: 3px 5px;
@@ -337,7 +368,7 @@ which prevents position fixed from working as intended */
   -webkit-backdrop-filter: var(--medium-blur);
 }
 
-/* make the lables more readable */
+/* make the labels more readable */
 .irs--shiny .irs-grid-text {
   font-size: 10px;
   line-height: 1;
@@ -479,7 +510,7 @@ which prevents position fixed from working as intended */
 
 
 
-/* full width flex box dropdown selection input */
+/* full width flex box dropdown selection input and calender */
 /* dropdown box selection box */
 .selectize-dropdown {
     z-index: 1051 !important; /* Ensure it's on top */
@@ -504,12 +535,14 @@ which prevents position fixed from working as intended */
     max-height: none;
 }
   
-.selectize-dropdown .optgroup:before {
-    display: none;
-}
+.selectize-dropdown .optgroup:before {display: none;}
   
 /* Style optgroup headers */
-.selectize-dropdown .optgroup-header {
+.selectize-dropdown .optgroup-header,
+.datepicker .prev,
+.datepicker-switch,
+.datepicker .next,
+.datepicker .dow {
     /*flex-basis: 100%; Span full width */
     
     padding: 8px 5px;
@@ -528,7 +561,8 @@ which prevents position fixed from working as intended */
 .selectize-dropdown .optgroup:hover .optgroup-header { color: var(--header-text-cyan-hover); /* Uses the NEW hover cyan text variable */ }
 
 /* Style individual options */
-.selectize-dropdown .option {
+.selectize-dropdown .option,
+.datepicker th {
     flex: 0 0 auto; 
     
     padding: 3px 5px;
@@ -541,6 +575,15 @@ which prevents position fixed from working as intended */
     text-overflow: ellipsis;
 }
 /* end full width flex box dropdown selection input */
+
+
+
+
+
+
+
+
+
 
 
 

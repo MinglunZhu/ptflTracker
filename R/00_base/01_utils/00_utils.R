@@ -80,15 +80,25 @@ reformatTkr <- function(t) {
 genSlctCol <- function(VAR_NAME, NAME) {
   tags$div(
     class = "settings-column",
-    tags$li(actionButton(paste0("tglAll", VAR_NAME, "_btn"), paste("Toggle All", NAME))),
+    tags$li(
+      actionButton(
+        paste0("tglAll", VAR_NAME, "_btn"), 
+        paste("Toggle All", NAME)
+      )
+    ),
     tags$li(
       selectizeInput(
-        paste0("selected", VAR_NAME, "_rtns"), paste("Select", NAME, "(Rebased):"),
+        paste0("selected", VAR_NAME, "_rtns"),
+        paste("Select", NAME, "(Rebased):"),
         choices = list(),
         selected = character(0),
         multiple = TRUE,
         options = list(
-          placeholder = paste('Type or click to select', tolower(NAME), '...'),
+          placeholder = paste(
+            'Type or click to select', 
+            tolower(NAME), 
+            '...'
+          ),
           plugins = list('remove_button')
           # Consider 'maxItems' if you want to limit selections
           # maxItems = 10
@@ -119,7 +129,13 @@ read_xts <- function(FP) {
 }
 
 # Add a function to safely download symbols with retries:
-safeGetSymbols <- function(TKR, END_DATE = RUN_DATE, MAX_ATTEMPTS = 3, DELAY = 15, TIMEOUT = 120) {
+safeGetSymbols <- function(
+  TKR, 
+  END_DATE = RUN_DATE, 
+  MAX_ATTEMPTS = 3, 
+  DELAY = 15, 
+  TIMEOUT = 120
+) {
   fp <- paste0(RCDS_DIR, TKR, '.csv')
   
   attempt <- 1
@@ -135,10 +151,9 @@ safeGetSymbols <- function(TKR, END_DATE = RUN_DATE, MAX_ATTEMPTS = 3, DELAY = 1
         )
       },
       timeout = TIMEOUT
-    ) %>%
-      try(silent = T)
+    ) %>% try(silent = T)
 
-    if (!inherits(result, "try-error")) {
+    if ( !inherits(result, "try-error") ) {
       # save the result to the RCDS_DIR
       write.zoo(
         result, fp,
@@ -150,18 +165,20 @@ safeGetSymbols <- function(TKR, END_DATE = RUN_DATE, MAX_ATTEMPTS = 3, DELAY = 1
     }
 
     if(attempt >= MAX_ATTEMPTS) {
-      if (file.exists(fp)) {
-        message(sprintf("Using local CSV file for %s due to download failure.", TKR))
+      if ( file.exists(fp) ) {
+        sprintf("Using local CSV file for %s due to download failure.", TKR) %>% message()
 
         read_xts(fp) %>% return()
-      } else stop("No local data available and download failed.")
+      }
+      
+      stop("No local data available and download failed.")
     }
 
-    message(sprintf(
+    sprintf(
       '[%s] Attempt %d/%d failed, retrying in %ds: %s',
-      format(Sys.time(), "%H:%M:%S"),
+      Sys.time() %>% format("%H:%M:%S"),
       attempt, MAX_ATTEMPTS, DELAY, TKR
-    ))
+    ) %>% message()
     Sys.sleep(DELAY)
 
     attempt <- attempt + 1
@@ -272,6 +289,38 @@ genMtPlot <- function(TTL) {
         paper_bgcolor = BG_COLOR,
         font = list(color = '#eee')
     )
+}
+
+# AMIN_ITV is milliseconds between frames
+genSldr_date <- function(
+  NS,
+  LBL = 'Select Date',
+  VAL = start_date,
+  ANIM_ITV = 1000
+) {
+  tags$li(
+    dateInput(
+      NS("selectedDatePicker"),
+      paste0(LBL, ':'),
+      min = start_date,
+      max = RUN_DATE,
+      value = VAL,
+      format = "yyyy-mm-dd"
+    ), # end dateInput
+    sliderInput(
+      NS("selectedDate"), NULL,
+      min = start_date,
+      max = RUN_DATE,
+      # default value is required
+      value = VAL,
+      timeFormat = "%Y-%m-%d", 
+      width = "100%",
+      animate = animationOptions(
+          interval = ANIM_ITV,
+          loop = T      # continue playing in a loop
+      )
+    ) # end sliderInput
+  )
 }
 
 addIcon_pfmc <- function(DF) {
