@@ -229,7 +229,12 @@ dataInitServer <- function(id) {
                                             is.na(ratio)
                                             | amt == 0
                                             # Special tolerance for AMTD on specific date
-                                            | abs(ratio - 1) < if_else(tkr == 'AMTD' & date == '2023-11-17', .5, TOLERANCE)
+                                            # Special tolerance for CIVI on specific date
+                                            | abs(ratio - 1) < case_when(
+                                                tkr == 'AMTD' & date == '2023-11-17' ~ .5,
+                                                tkr == 'CIVI' & date == '2026-01-30' ~ 5,
+                                                T ~ TOLERANCE
+                                            )
                                         ) ~ 1,
                                         # Reverse split
                                         ratio > 1 ~ 1 / round(ratio),
@@ -284,7 +289,7 @@ dataInitServer <- function(id) {
                                 filter(abs(adj_unitCnt) %>% sum() > 0) %>%
                                 # Arrange and calculate cumulative sum within each ticker group
                                 arrange(date) %>%
-                                mutate(cmltvUnitCnt = cumsum(adj_unitCnt) %>% round(maxDecimals)) %>%
+                                mutate( cmltvUnitCnt = cumsum(adj_unitCnt) %>% round(maxDecimals) ) %>%
                                 # 4. Join holdings with daily prices
                                 left_join(
                                     prices_daily_df,

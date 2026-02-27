@@ -107,12 +107,19 @@ progStepAmt <- 1 / (1 + length(unique_tickers) + 1 + length(currencies) + 1 + 1 
 
 # Analyze trades.csv for maximum decimal places
 # Remove any extraneous whitespace, then count the characters after the decimal point if present.
-maxDecimals <- trades$unitCnt %>%
-  as.character() %>%
-  strsplit("\\.") %>%
-  sapply(function(ps) {
-      if (length(ps) == 1) return(0)
+# read col as text bypass R's default truncation when converting to text
+maxDecimals <- read_csv(
+    "ipts/trades.csv",
+    col_types = cols( unitCnt = col_character() ),
+    col_select = unitCnt
+  )$unitCnt |>
+  na.omit() |>
+  strsplit("\\.") |>
+  sapply(
+    function(PS) {
+      if (length(PS) == 1) return(0)
 
-      nchar(ps[2])
-  }) %>%
-  max(na.rm = T)
+      nchar(PS[2])
+    }
+  ) |>
+  max()
