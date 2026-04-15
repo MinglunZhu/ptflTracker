@@ -20,7 +20,7 @@ trades <- read_csv("ipts/trades.csv") %>%
   # manage exclusions here
   filter(
     !str_starts(tkr, 'USD|(coro|cs|etr|mg|of|sgn):')
-    & tkr != 'lse:HYUD.il'
+    & !( tkr %in% c('lse:HYUD.il', 'CIVI') )
   ) %>%
   mutate(
     # Apply the cleaning function and store as a new column for Yahoo Finance tickers.
@@ -41,7 +41,7 @@ trades <- read_csv("ipts/trades.csv") %>%
       fund %in% c('SMH', 'SOXQ') ~ 'Semiconductor',
       fund %in% c('of:SRA') ~ 'Retirement',
       fund %in% c('of:TNIF', 'of:TNNIF') ~ 'Mega Cap',
-      fund %in% c('of:UCGF', 'SVF') ~ 'Value',
+      fund %in% c('of:UCGF', 'SVF', 'of:TNUCGF') ~ 'Value',
       T ~ 'Misc.'
     ),
     src = if_else(
